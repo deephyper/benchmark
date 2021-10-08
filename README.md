@@ -17,12 +17,16 @@ The repository follows this organization:
 
 ```bash
 # Python package containing utility code
-deephyper_bench/
+src/deephyper_benchmark/
 
 # Scripts to execute benchmarks
-scripts/
-    argonne-lcf/ # argonne lcf execution (theta-knl, theta-gpu, ...)
-    local/ # local execution (laptopt, single instance)
+src/
+    scripts/
+        argonne-lcf/ # argonne lcf execution (theta-knl, theta-gpu, ...)
+        local/ # local execution (laptopt, single instance)
+
+# Test the good behaviour of the deephyper_benchmark package
+tests/
 ```
 
 ## Installation
