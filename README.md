@@ -40,7 +40,7 @@ pip install -e.
 The entry-point is the `deephyper-benchmark` command line to which we provide a benchmark script to execute. This script is a Python file containing an implemented sub-class of `Benchmark`:
 
 ```console
-deephyper-benchmark --script src/scripts/local/hps_101.py
+deephyper-benchmark src/scripts/local/hps_101_ray_evaluator.py -v -o output/
 ```
 
 Each Benchmark will be executed in 3 steps:
