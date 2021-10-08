@@ -10,7 +10,7 @@ from deephyper_benchmark.run.run_ackley import run
 logger = logging.getLogger(__name__)
 
 
-class HPS101SubprocessEvaluator(Benchmark):
+class HPS101ProcessEvaluator(Benchmark):
     def __init__(self, verbose=0):
         super().__init__(verbose)
 
@@ -29,7 +29,7 @@ class HPS101SubprocessEvaluator(Benchmark):
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
             run,
-            method="subprocess",
+            method="process",
             method_kwargs={"num_workers": 6, "callbacks": [self.profiler]},
         )
         logger.info(
