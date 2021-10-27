@@ -10,7 +10,7 @@ from deephyper_benchmark.run.run_ackley import run
 logger = logging.getLogger(__name__)
 
 
-class HPS101RayEvaluator(Benchmark):
+class BenchmarkTest1(Benchmark):
     def __init__(self, verbose=0):
         super().__init__(verbose)
 
@@ -29,12 +29,8 @@ class HPS101RayEvaluator(Benchmark):
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
             run,
-            method="ray",
-            method_kwargs={
-                "num_cpus": 6,
-                "num_cpus_per_task": 1,
-                "callbacks": [self.profiler],
-            },
+            method="process",
+            method_kwargs={"num_workers": 6, "callbacks": [self.profiler]},
         )
         logger.info(
             f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}"
@@ -43,14 +39,16 @@ class HPS101RayEvaluator(Benchmark):
         logger.info("Creating the search...")
         self.search = AMBS(self.problem, self.evaluator)
 
-        self.results = {"num_workers": self.evaluator.num_workers}
+        self.results = {
+            "num_workers": self.evaluator.num_workers
+        }
 
         logger.info("Finishing initialization")
 
     def execute(self):
         logger.info(f"Starting execution of *{type(self).__name__}*")
 
-        self.results["search"] = self.search.search(max_evals=1000)
+        self.results["search"] = self.search.search(max_evals=10)
         self.results["profile"] = self.profiler.profile
 
     def report(self):

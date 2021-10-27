@@ -1,0 +1,10 @@
+user: joceran
+group: scaling-ray
+system:
+  name: theta
+  n_nodes: 128
+  walltime: 60
+type: laptop
+description: "This benchmark is for teting benchmark."
+deephyper:
+  version: 0.3.1

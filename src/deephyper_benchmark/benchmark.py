@@ -21,4 +21,11 @@ class Benchmark(abc.ABC):
     def report(self):
         """Report the results from the benchmark.
         """
-
+    
+    def save(self):
+        return 0
+    
+    def run(self):
+        self.initialize()
+        self.execute()
+        return self.report()

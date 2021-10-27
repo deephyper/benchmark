@@ -1,7 +1,7 @@
 import logging
 
 from deephyper.evaluator.callback import ProfilingCallback
-from deephyper.evaluator.evaluate import Evaluator
+from deephyper.evaluator import Evaluator
 from deephyper.problem import HpProblem
 from deephyper.search.hps import AMBS
 from deephyper_benchmark.benchmark import Benchmark
