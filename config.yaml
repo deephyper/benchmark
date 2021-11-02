@@ -1,10 +1,13 @@
 user: joceran
-group: scaling-ray
+group: benchmark_test
+description: "This benchmark is for testing benchmark."
+
 system:
-  name: theta
-  n_nodes: 128
-  walltime: 60
-type: laptop
-description: "This benchmark is for teting benchmark."
-deephyper:
-  version: 0.3.1
+  name: hp_pavillon
+  type: laptop
+
+parameters:
+  num_workers: 6
+  evaluator_method: process
+  max_evals: 10
+  starting_point: [-32.768, 32.768]
