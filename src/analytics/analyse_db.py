@@ -114,13 +114,15 @@ def select_criterias(criterias, choices):
             choices[key] = choice
 
 def test_criterias(choices, query):
-    sentence = None
+    sentence = query.noop()
     for key, val in choices.items():
         if type(val) == dict :
-            test = (~ (query[key].exists())) | (test_criterias(choices[key], query[key]))
+            test = test_criterias(choices[key], query[key])
+        elif len(val) != 0:
+            test = query[key].one_of(val)
         else:
-            test = (~ (query[key].exists())) | (query[key].one_of(val))
-        sentence = (test) & (sentence)
+            test = query.noop()
+        sentence = (~ (query[key].exists()) | test) & sentence
     return sentence
 
 _database_selection()
