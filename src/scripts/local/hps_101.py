@@ -10,7 +10,14 @@ from deephyper_benchmark.run.run_ackley import run
 logger = logging.getLogger(__name__)
 
 
-class BenchmarkTest1(Benchmark):
+class BenchmarkHPS101(Benchmark):
+    parameters = {
+        "num_workers": 6,
+        "evaluator_method": "ray",
+        "max_evals": 10,
+        "starting_point": [-32.768, 32.768]
+    }
+
     def __init__(self, verbose=0):
         super().__init__(verbose)
 
@@ -18,19 +25,21 @@ class BenchmarkTest1(Benchmark):
             logger.addHandler(logging.StreamHandler())
             logger.setLevel(logging.INFO)
 
-    def load_parameters(self, **kwargs):
-        err_msg = "'{}' is not found in the {}"
-        assert "num_workers" in kwargs.keys(), err_msg.format("num_workers", "parameters")
-        assert "evaluator_method" in kwargs, err_msg.format("evaluator_method", "parameters")
-        assert "max_evals" in kwargs, err_msg.format("max_evals", "parameters")
-        assert "starting_point" in kwargs, err_msg.format("starting_point", "parameters")
+    def load_parameters(self, params):
+        super().load_parameters(params)
 
-        self.parameters = {
-            "num_workers": kwargs["num_workers"],
-            "evaluator_method": kwargs["evaluator_method"],
-            "max_evals": kwargs["max_evals"],
-            "starting_point": tuple(kwargs["starting_point"])
-        }
+        err_msg = "{}: should be {}, but found '{}'"
+        assert self.parameters["evaluator_method"] in ["process", "subprocess", "ray"], err_msg.format(
+            "evaluator_method", "either process, subprocess, or ray", self.parameters["evaluator_method"])
+        assert self.parameters["num_workers"] > 0, err_msg.format(
+            "num_workers", "positive", self.parameters["num_workers"])
+        assert self.parameters["max_evals"] > 0, err_msg.format(
+            "max_evals", "positive", self.parameters["max_evals"])
+
+        self.parameters["starting_point"] = tuple(
+            self.parameters["starting_point"])
+
+        return self.parameters
 
     def initialize(self):
         logger.info(f"Starting initialization of *{type(self).__name__}*")
@@ -44,7 +53,8 @@ class BenchmarkTest1(Benchmark):
         self.evaluator = Evaluator.create(
             run,
             method=self.parameters["evaluator_method"],
-            method_kwargs={"num_workers": self.parameters["num_workers"], "callbacks": [self.profiler]},
+            method_kwargs={
+                "num_workers": self.parameters["num_workers"], "callbacks": [self.profiler]},
         )
         logger.info(
             f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}"
@@ -58,25 +68,16 @@ class BenchmarkTest1(Benchmark):
     def execute(self):
         logger.info(f"Starting execution of *{type(self).__name__}*")
 
-        self.results["search"] = self.search.search(max_evals=self.parameters["max_evals"])
-        self.results["profile"] = self.profiler.profile
+        self.search_result = self.search.search(
+            max_evals=self.parameters["max_evals"])
+        self.profile_result = self.profiler.profile
 
     def report(self):
         logger.info(f"Starting the report of *{type(self).__name__}*")
-        
-        err_msg = "'{}' is not found in the {}"
-        assert "profile" in self.results, err_msg.format("profile", "report")
-        assert "search" in self.results, err_msg.format("search", "report")
-        assert "init_time" in self.results, err_msg.format("init_time", "report")
-        assert "exec_time" in self.results, err_msg.format("exec_time", "report")
 
         num_workers = self.parameters["num_workers"]
-        profile = self.results["profile"]
-        search = self.results["search"]
-
-        # keys of profile: timestamp n_jobs_running
-        assert "timestamp" in profile.columns, err_msg.format("timestamp", "profile")
-        assert "n_jobs_running" in profile.columns, err_msg.format("n_jobs_running", "profile")
+        profile = self.profile_result
+        search = self.search_result
 
         # compute worker utilization
         t0 = profile.iloc[0].timestamp
@@ -89,18 +90,13 @@ class BenchmarkTest1(Benchmark):
                 profile.timestamp.iloc[i + 1] - profile.timestamp.iloc[i]
             ) * profile.n_jobs_running.iloc[i]
         perc_util = cum / T_max
-        self.results["perc_util"] = perc_util
-        
+
         t0 = profile.iloc[0].timestamp
         profile.timestamp -= t0
-        
-        # saving report
+
+        # return results
+        self.results["perc_util"] = perc_util
         self.results["profile"] = profile.to_dict(orient='list')
         self.results["search"] = search.to_dict(orient='list')
 
-        report = {
-            "parameters": self.parameters,
-            "results": self.results
-            }
-
-        return report
+        return self.results

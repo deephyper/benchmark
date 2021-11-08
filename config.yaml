@@ -1,13 +1,16 @@
-user: joceran
-group: benchmark_test
-description: "This benchmark is for testing benchmark."
+script: local/hps_101.py
+database: db2.json
 
-system:
-  name: hp_pavillon
-  type: laptop
+summary:
+  user: joceran
+  group: evaluator_test
+  label: process
+  description: This benchmark is for testing benchmark.
+
+env:
+  system:
+    name: hp_pavillon
+    type: laptop
 
 parameters:
-  num_workers: 6
   evaluator_method: process
-  max_evals: 10
-  starting_point: [-32.768, 32.768]
