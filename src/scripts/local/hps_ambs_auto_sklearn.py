@@ -1,78 +1,75 @@
 import logging
 
-from deephyper.evaluator.callback import ProfilingCallback
 from deephyper.evaluator import Evaluator
-from deephyper.problem import HpProblem
+from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
+from deephyper.sklearn.classifier import problem_autosklearn1
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions import run_ackley
+from scripts.local.run_functions import run_breast_cancer
 
 logger = logging.getLogger(__name__)
 
 
-class BenchmarkHPS101(Benchmark):
+class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
     parameters = {
-        "num_workers": 6,
-        "evaluator_method": "ray",
-        "max_evals": 10,
-        "starting_point": [-32.768, 32.768]
+        "random_state": 42,
+        "surrogate_model": "RF", # RF, ET, GBRT / DUMMY
+        "acq_func": "UCB", # UCB, EI, PI, gp_hedge
+        "kappa": 1.96,
+        "filter_duplicated": True,
+        "liar_strategy": "cl_max", # cl_min, cl_mean, cl_max
+        "n_jobs": 1,
+        "evaluator_method": "ray", # ray, process, subprocess / threadpool
+        "num_workers": 1,
+        "max_evals": 100
     }
 
-    def __init__(self, verbose=0):
-        super().__init__(verbose)
+    def __init__(self, verbose=0) -> None:
+        super().__init__(verbose=verbose)
         if self.verbose:
             logger.addHandler(logging.StreamHandler())
             logger.setLevel(logging.INFO)
 
-    def load_parameters(self, params):
-        super().load_parameters(params)
-
-        err_msg = "{}: should be {}, but found '{}'"
-        assert self.parameters["evaluator_method"] in ["process", "subprocess", "ray"], err_msg.format(
-            "evaluator_method", "either process, subprocess, or ray", self.parameters["evaluator_method"])
-        assert self.parameters["num_workers"] > 0, err_msg.format(
-            "num_workers", "positive", self.parameters["num_workers"])
-        assert self.parameters["max_evals"] > 0, err_msg.format(
-            "max_evals", "positive", self.parameters["max_evals"])
-
-        self.parameters["starting_point"] = tuple(
-            self.parameters["starting_point"])
-
-        return self.parameters
-
-    def initialize(self):
+    def initialize(self) -> None:
         logger.info(f"Starting initialization of *{type(self).__name__}*")
 
         logger.info("Creating the problem...")
-        self.problem = HpProblem()
-        self.problem.add_hyperparameter(self.parameters["starting_point"], "x")
+        self.problem = problem_autosklearn1
 
         logger.info("Creating the evaluator...")
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
-            run_ackley,
+            run_breast_cancer,
             method=self.parameters["evaluator_method"],
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],
-                "callbacks": [self.profiler]},
+                "callbacks": [LoggerCallback(), self.profiler]
+            }
         )
         logger.info(
-            f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}"
-        )
+            f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}")
 
         logger.info("Creating the search...")
-        self.search = AMBS(self.problem, self.evaluator)
-
+        self.search = AMBS(
+            self.problem,
+            self.evaluator,
+            random_state=self.parameters["random_state"],
+            surrogate_model=self.parameters["surrogate_model"],
+            acq_func=self.parameters["acq_func"],
+            kappa=self.parameters["kappa"],
+            filter_duplicated=self.parameters["filter_duplicated"],
+            liar_strategy=self.parameters["liar_strategy"],
+            n_jobs=self.parameters["n_jobs"]
+        )
         logger.info("Finishing initialization")
 
-    def execute(self):
+    def execute(self) -> None:
         logger.info(f"Starting execution of *{type(self).__name__}*")
 
-        self.search_result = self.search.search(
-            max_evals=self.parameters["max_evals"])
+        self.search_result = self.search.search(max_evals=self.parameters["max_evals"])
         self.profile_result = self.profiler.profile
 
-    def report(self):
+    def report(self) -> dict:
         logger.info(f"Starting the report of *{type(self).__name__}*")
 
         num_workers = self.parameters["num_workers"]

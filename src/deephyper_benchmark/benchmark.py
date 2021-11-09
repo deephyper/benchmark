@@ -15,6 +15,8 @@ class Benchmark(abc.ABC):
         for param, value in params.items():
             if param in self.parameters.keys():
                 self.parameters[param] = value
+                
+        return self.parameters
 
     @abc.abstractmethod
     def initialize(self) -> None:

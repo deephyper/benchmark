@@ -1,11 +1,11 @@
-script: local/hps_101.py
-database: db2.json
+script: local/hps_ambs_auto_sklearn.py
+database: db.json
 
 summary:
   user: joceran
-  group: evaluator_test
-  label: process
-  description: This benchmark is for testing benchmark.
+  group: surrogate_models
+  label: Random Forest
+  description:
 
 env:
   system:
@@ -13,4 +13,5 @@ env:
     type: laptop
 
 parameters:
-  evaluator_method: process
+  surrogate_model: GBRT
+  max_evals: 50
