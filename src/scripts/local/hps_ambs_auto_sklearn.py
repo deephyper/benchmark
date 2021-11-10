@@ -5,7 +5,7 @@ from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
 from deephyper.sklearn.classifier import problem_autosklearn1
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions import run_breast_cancer
+from scripts.local.run_functions import run_diabetes
 
 logger = logging.getLogger(__name__)
 
@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
     parameters = {
         "random_state": 42,
-        "surrogate_model": "RF", # RF, ET, GBRT / DUMMY
-        "acq_func": "UCB", # UCB, EI, PI, gp_hedge
+        "surrogate_model": "RF",  # RF, ET, GBRT / DUMMY
+        "acq_func": "UCB",  # UCB, EI, PI, gp_hedge
         "kappa": 1.96,
         "filter_duplicated": True,
-        "liar_strategy": "cl_max", # cl_min, cl_mean, cl_max
+        "liar_strategy": "cl_max",  # cl_min, cl_mean, cl_max
         "n_jobs": 1,
-        "evaluator_method": "ray", # ray, process, subprocess / threadpool
+        "evaluator_method": "ray",  # ray, process, subprocess / threadpool
         "num_workers": 1,
         "max_evals": 100
     }
@@ -39,7 +39,7 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         logger.info("Creating the evaluator...")
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
-            run_breast_cancer,
+            run_diabetes,
             method=self.parameters["evaluator_method"],
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],
@@ -66,7 +66,8 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
     def execute(self) -> None:
         logger.info(f"Starting execution of *{type(self).__name__}*")
 
-        self.search_result = self.search.search(max_evals=self.parameters["max_evals"])
+        self.search_result = self.search.search(
+            max_evals=self.parameters["max_evals"])
         self.profile_result = self.profiler.profile
 
     def report(self) -> dict:
@@ -91,9 +92,13 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         t0 = profile.iloc[0].timestamp
         profile.timestamp -= t0
 
+        # compute best objective
+        best_obj = max(search.objective)
+
         # return results
-        self.results["perc_util"] = perc_util
-        self.results["profile"] = profile.to_dict(orient='list')
         self.results["search"] = search.to_dict(orient='list')
+        self.results["profile"] = profile.to_dict(orient='list')
+        self.results["best_obj"] = best_obj
+        self.results["perc_util"] = perc_util
 
         return self.results

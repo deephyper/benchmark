@@ -16,12 +16,14 @@ def run_ackley(config):
 
 
 def load_data():
-    from sklearn.datasets import load_breast_cancer
+    from sklearn.datasets import fetch_openml
 
-    X, y = load_breast_cancer(return_X_y=True)
+    X, y = fetch_openml(name="diabetes", version=1, return_X_y=True)
 
     return X, y
 
 
-def run_breast_cancer(config):
+def run_diabetes(config):
+    if type(config["n_neighbors"]) == float:
+        config['n_neighbors'] = int(config['n_neighbors'])
     return run_autosklearn1(config, load_data)
