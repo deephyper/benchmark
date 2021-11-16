@@ -3,8 +3,8 @@ database: db.json
 
 summary:
   user: joceran
-  group: surrogate_models
-  label: Random Forest
+  group: hps_ambs_autosklearn
+  label: default
   description:
 
 env:
@@ -13,5 +13,5 @@ env:
     type: laptop
 
 parameters:
-  surrogate_model: GBRT
-  max_evals: 50
+  max_evals: 70
+  num_workers : 1
