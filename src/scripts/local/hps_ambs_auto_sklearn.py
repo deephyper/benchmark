@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from deephyper.evaluator import Evaluator
 from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
     parameters = {
-        "random_state": 42,
+        "random_state": None,
         "surrogate_model": "RF",  # RF, ET, GBRT / DUMMY
         "acq_func": "UCB",  # UCB, EI, PI, gp_hedge
         "kappa": 1.96,
@@ -21,7 +22,7 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         "n_jobs": 1,
         "evaluator_method": "ray",  # ray, process, subprocess / threadpool
         "num_workers": 1,
-        "max_evals": 100
+        "max_evals": 70
     }
 
     def __init__(self, verbose=0) -> None:
@@ -29,6 +30,13 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         if self.verbose:
             logger.addHandler(logging.StreamHandler())
             logger.setLevel(logging.INFO)
+
+    def load_parameters(self, params) -> dict:
+        super().load_parameters(params)
+        if self.parameters["random_state"] is None:
+            self.parameters["random_state"] = np.random.randint(
+                0, np.iinfo(np.int32).max)
+        return self.parameters
 
     def initialize(self) -> None:
         logger.info(f"Starting initialization of *{type(self).__name__}*")
