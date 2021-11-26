@@ -22,7 +22,7 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         "n_jobs": 1,
         "evaluator_method": "ray",  # ray, process, subprocess / threadpool
         "num_workers": 1,
-        "max_evals": 70
+        "max_evals": 70,
     }
 
     def __init__(self, verbose=0) -> None:
@@ -35,29 +35,25 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         super().load_parameters(params)
         if self.parameters["random_state"] is None:
             self.parameters["random_state"] = np.random.randint(
-                0, np.iinfo(np.int32).max)
+                0, np.iinfo(np.int32).max
+            )
         return self.parameters
 
     def initialize(self) -> None:
         logger.info(f"Starting initialization of *{type(self).__name__}*")
 
-        logger.info("Creating the problem...")
         self.problem = problem_autosklearn1
 
-        logger.info("Creating the evaluator...")
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
             run_diabetes,
             method=self.parameters["evaluator_method"],
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],
-                "callbacks": [LoggerCallback(), self.profiler]
-            }
+                "callbacks": [LoggerCallback(), self.profiler],
+            },
         )
-        logger.info(
-            f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}")
 
-        logger.info("Creating the search...")
         self.search = AMBS(
             self.problem,
             self.evaluator,
@@ -67,15 +63,13 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
             kappa=self.parameters["kappa"],
             filter_duplicated=self.parameters["filter_duplicated"],
             liar_strategy=self.parameters["liar_strategy"],
-            n_jobs=self.parameters["n_jobs"]
+            n_jobs=self.parameters["n_jobs"],
         )
         logger.info("Finishing initialization")
 
     def execute(self) -> None:
         logger.info(f"Starting execution of *{type(self).__name__}*")
-
-        self.search_result = self.search.search(
-            max_evals=self.parameters["max_evals"])
+        self.search_result = self.search.search(max_evals=self.parameters["max_evals"])
         self.profile_result = self.profiler.profile
 
     def report(self) -> dict:
@@ -91,7 +85,7 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         T_max = (t_max - t0) * num_workers
 
         cum = 0
-        for i in range(len(profile.timestamp)-1):
+        for i in range(len(profile.timestamp) - 1):
             cum += (
                 profile.timestamp.iloc[i + 1] - profile.timestamp.iloc[i]
             ) * profile.n_jobs_running.iloc[i]
@@ -104,8 +98,8 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
         best_obj = max(search.objective)
 
         # return results
-        self.results["search"] = search.to_dict(orient='list')
-        self.results["profile"] = profile.to_dict(orient='list')
+        self.results["search"] = search.to_dict(orient="list")
+        self.results["profile"] = profile.to_dict(orient="list")
         self.results["best_obj"] = best_obj
         self.results["perc_util"] = perc_util
 
