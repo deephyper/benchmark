@@ -49,6 +49,10 @@ class Benchmark(abc.ABC):
         if self.parameters["profiling"]:
             prof.disable()
             stat = pstats.Stats(prof)
+            stat.sort_stats(pstats.SortKey.CUMULATIVE)
+            stat.print_stats(20)
+            stat.sort_stats(pstats.SortKey.TIME)
+            stat.print_stats(5)
 
             def _clear_queue(val):
                 val[-1] = {}
