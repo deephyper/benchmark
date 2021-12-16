@@ -133,9 +133,16 @@ output/
 
 # TinyDB databases
 dbs/*.json
+db.json
 
 # run results
 results.csv
 
 # benchmark execution config file
-config.yaml
+config.yaml 
+
+# experiment folder
+exp/
+
+# vscode settings
+.vscode/
