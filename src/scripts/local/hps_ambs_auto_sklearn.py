@@ -6,7 +6,7 @@ from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
 from deephyper.sklearn.classifier import problem_autosklearn1
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions.openml import run_diabetes
+from deephyper_benchmark.run.openml import run_diabetes
 
 logger = logging.getLogger(__name__)
 

@@ -1,12 +1,11 @@
 import logging
 
-import numpy as np
 from deephyper.evaluator import Evaluator
 from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
 from deephyper.sklearn.classifier import problem_autosklearn1
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions.run_functions import run_sleep
+from deephyper_benchmark.run.sleep import run_sleep
 
 logger = logging.getLogger(__name__)
 

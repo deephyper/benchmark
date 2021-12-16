@@ -6,7 +6,7 @@ from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
 from deephyper.problem import HpProblem
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions.hpo_bench import run_test
+from deephyper_benchmark.run.hpo_bench import run_test
 from hpobench.benchmarks.ml.nn_benchmark import NNBenchmark
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class BenchmarkHPOBenchTest(Benchmark):
         logger.info(f"Starting initialization of *{type(self).__name__}*")
 
         config_space = NNBenchmark(task_id=1).get_configuration_space(seed=1)
-        self.problem = HpProblem(config_space)
+        self.problem = HpProblem(config_space=config_space)
 
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(

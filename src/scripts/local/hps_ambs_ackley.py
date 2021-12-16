@@ -6,7 +6,7 @@ from deephyper.problem import HpProblem
 from deephyper.search.hps import AMBS
 import numpy as np
 from deephyper_benchmark.benchmark import Benchmark
-from scripts.local.run_functions.ackley import run_ackley
+from deephyper_benchmark.run.ackley import run_ackley
 
 logger = logging.getLogger(__name__)
 
