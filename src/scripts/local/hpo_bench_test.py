@@ -4,14 +4,15 @@ import numpy as np
 from deephyper.evaluator import Evaluator
 from deephyper.evaluator.callback import LoggerCallback, ProfilingCallback
 from deephyper.search.hps import AMBS
-from deephyper.sklearn.classifier import problem_autosklearn1
+from deephyper.problem import HpProblem
 from deephyper_benchmark.benchmark import Benchmark
-from deephyper_benchmark.run.openml import run_diabetes
+from deephyper_benchmark.run.hpo_bench import run_test
+from hpobench.benchmarks.ml.nn_benchmark import NNBenchmark
 
 logger = logging.getLogger(__name__)
 
 
-class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
+class BenchmarkHPOBenchTest(Benchmark):
     parameters = {
         "random_state": None,
         "surrogate_model": "RF",  # RF, ET, GBRT / DUMMY
@@ -42,11 +43,12 @@ class BenchmarkHPSAMBSOnAutoSKLearn(Benchmark):
     def initialize(self) -> None:
         logger.info(f"Starting initialization of *{type(self).__name__}*")
 
-        self.problem = problem_autosklearn1
+        config_space = NNBenchmark(task_id=1).get_configuration_space(seed=1)
+        self.problem = HpProblem(config_space=config_space)
 
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
-            run_diabetes,
+            run_test,
             method=self.parameters["evaluator_method"],
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],
