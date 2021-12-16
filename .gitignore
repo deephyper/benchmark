@@ -136,3 +136,9 @@ db.json
 
 # benchmark execution config file
 config.yaml 
+
+# experiment folder
+exp/
+
+# vscode settings
+.vscode/
