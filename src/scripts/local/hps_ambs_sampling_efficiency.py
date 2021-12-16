@@ -12,17 +12,14 @@ import deephyper_benchmark.run.run_ackley as run_ackley
 logger = logging.getLogger(__name__)
 
 
-SLEEP_TIME = 0
-
-def run_timeout(config):
-
-    time.sleep(SLEEP_TIME)
-
-    return run_ackley.run(config)
-
-
 class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
-    parameters = {"num_workers": 1, "timeout": 5, "sleep_time": 0}
+    parameters = {
+        "num_dimensions": 1,
+        "num_workers": 1,
+        "timeout": 5,
+        "sleep_duration": 0,
+        "sleep_duration_noise": 0,
+    }
 
     def __init__(self, verbose=0):
         super().__init__(verbose)
@@ -34,16 +31,23 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         super().load_parameters(params)
 
         err_msg = "{}: should be {}, but found '{}'"
+
+        assert (
+            self.parameters["num_dimensions"] >= 1
+            and type(self.parameters["num_dimensions"]) is int
+        )
         assert self.parameters["num_workers"] > 0, err_msg.format(
             "num_workers", "positive", self.parameters["num_workers"]
         )
         assert self.parameters["timeout"] >= 0, err_msg.format(
             "timeout", "positive", self.parameters["timeout"]
         )
-        assert self.parameters["sleep_time"] >= 0, err_msg.format(
-            "sleep_time", "positive", self.parameters["sleep_time"]
+        assert self.parameters["sleep_duration"] >= 0, err_msg.format(
+            "sleep_duration", "positive", self.parameters["sleep_duration"]
         )
-        SLEEP_TIME = self.parameters["sleep_time"]
+        assert self.parameters["sleep_duration_noise"] >= 0, err_msg.format(
+            "sleep_duration_noise", "positive", self.parameters["sleep_duration_noise"]
+        )
 
         return self.parameters
 
@@ -52,16 +56,21 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
 
         logger.info("Creating the problem...")
         self.problem = HpProblem()
-        self.problem.add_hyperparameter((-32.768, 32.768), "x")
+        for i in range(self.parameters["num_dimensions"]):
+            self.problem.add_hyperparameter((-32.768, 32.768), f"x{i}")
 
         logger.info("Creating the evaluator...")
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
-            run_timeout,
+            run_ackley.run,
             method="ray",
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],
                 "callbacks": [self.profiler],
+                "run_function_kwargs": {
+                    "sleep_duration": self.parameters["sleep_duration"],
+                    "sleep_duration_noise": self.parameters["sleep_duration_noise"],
+                },
             },
         )
         logger.info(
