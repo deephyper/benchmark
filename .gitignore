@@ -131,8 +131,11 @@ dmypy.json
 output/
 .DS_Store
 
-# TinyDB database
-db.json
+# TinyDB databases
+dbs/*.json
+
+# run results
+results.csv
 
 # benchmark execution config file
-config.yaml 
+config.yaml
