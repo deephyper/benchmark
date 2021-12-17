@@ -82,6 +82,7 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         logger.info(
             f"Evaluator created with {self.evaluator.num_workers} worker{'s' if self.evaluator.num_workers > 1 else ''}"
         )
+        self.parameters["num_workers"] = self.evaluator.num_workers
 
         logger.info("Creating the search...")
         self.search = AMBS(
@@ -126,7 +127,7 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
 
         # return results
         self.results["perc_util"] = perc_util
-        self.results["profile"] = profile.to_dict(orient="list")
+        self.results["profile"] = {"data": profile.to_dict(orient="list"), "num_workers": self.parameters["num_workers"]}
         self.results["search"] = search.to_dict(orient="list")
 
         return self.results
