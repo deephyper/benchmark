@@ -19,6 +19,9 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         "timeout": 5,
         "sleep_duration": 0,
         "sleep_duration_noise": 0,
+        "n_points": 10000,
+        "n_jobs": 1,
+        "surrogate_model": "RF",
     }
 
     def __init__(self, verbose=0):
@@ -47,6 +50,9 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         )
         assert self.parameters["sleep_duration_noise"] >= 0, err_msg.format(
             "sleep_duration_noise", "positive", self.parameters["sleep_duration_noise"]
+        )
+        assert self.parameters["n_points"] >= 0, err_msg.format(
+            "n_points", "n_points", self.parameters["n_points"]
         )
 
         return self.parameters
@@ -78,7 +84,13 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         )
 
         logger.info("Creating the search...")
-        self.search = AMBS(self.problem, self.evaluator)
+        self.search = AMBS(
+            self.problem,
+            self.evaluator,
+            n_points=self.parameters["n_points"],
+            n_jobs=self.parameters["n_jobs"],
+            surrogate_model=self.parameters["surrogate_model"],
+        )
 
         logger.info("Finishing initialization")
 
