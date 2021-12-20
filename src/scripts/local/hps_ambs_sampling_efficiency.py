@@ -125,9 +125,13 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         t0 = profile.iloc[0].timestamp
         profile.timestamp -= t0
 
+        best_obj = max(search.objective)
+
         # return results
         self.results["perc_util"] = perc_util
         self.results["profile"] = {"data": profile.to_dict(orient="list"), "num_workers": self.parameters["num_workers"]}
         self.results["search"] = search.to_dict(orient="list")
+        self.results["best_obj"] = best_obj
+        self.results["nb_iter"] = len(search.index)
 
         return self.results
