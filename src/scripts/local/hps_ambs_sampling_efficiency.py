@@ -101,14 +101,14 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         self.search_result = self.search.search(
             max_evals=-1, timeout=self.parameters["timeout"]
         )
-        self.profile_result = self.profiler.profile
 
     def report(self):
         logger.info(f"Starting the report of *{type(self).__name__}*")
 
         num_workers = self.parameters["num_workers"]
-        profile = self.profile_result
+        profile = self.profiler.profile
         search = self.search_result
+        self.parameters["nb_iter"] = len(search.index)
 
         # compute worker utilization
         t0 = profile.iloc[0].timestamp
@@ -132,6 +132,5 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         self.results["profile"] = {"data": profile.to_dict(orient="list"), "num_workers": self.parameters["num_workers"]}
         self.results["search"] = search.to_dict(orient="list")
         self.results["best_obj"] = best_obj
-        self.results["nb_iter"] = len(search.index)
 
         return self.results
