@@ -1,3 +1,4 @@
+import logging
 import abc
 import cProfile
 import pstats
@@ -32,8 +33,15 @@ class Benchmark(abc.ABC):
         """Compute the desired results and return them as a dict."""
 
     def run(self):
+        logger = logging.getLogger(__name__)
+
+        def _clear_queue(val):
+                val[-1] = {}
+                return val
+                
         self.results = {}
 
+        logger.info(f"Starting initialization of *{type(self).__name__}*")
         init_start = time.perf_counter()
         self.initialize()
         init_end = time.perf_counter()
@@ -42,6 +50,7 @@ class Benchmark(abc.ABC):
             prof = cProfile.Profile()
             prof.enable()
 
+        logger.info(f"Starting execution of *{type(self).__name__}*")
         exec_start = time.perf_counter()
         self.execute()
         exec_end = time.perf_counter()
@@ -54,10 +63,6 @@ class Benchmark(abc.ABC):
             stat.sort_stats(pstats.SortKey.TIME)
             stat.print_stats(5)
 
-            def _clear_queue(val):
-                val[-1] = {}
-                return val
-
             stats = [
                 [list(func_path), _clear_queue(list(chronos))]
                 for func_path, chronos in stat.stats.items()
@@ -65,4 +70,6 @@ class Benchmark(abc.ABC):
             self.results["profiling"] = stats
         self.results["init_time"] = init_end - init_start
         self.results["exec_time"] = exec_end - exec_start
+
+        logger.info(f"Starting the report of *{type(self).__name__}*")
         return self.report()

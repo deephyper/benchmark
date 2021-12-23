@@ -93,8 +93,6 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
             surrogate_model=self.parameters["surrogate_model"],
         )
 
-        logger.info("Finishing initialization")
-
     def execute(self):
         logger.info(f"Starting execution of *{type(self).__name__}*")
 
