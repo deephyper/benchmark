@@ -129,5 +129,6 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         self.results["profile"] = {"data": profile.to_dict(orient="list"), "num_workers": self.parameters["num_workers"]}
         self.results["search"] = search.to_dict(orient="list")
         self.results["best_obj"] = best_obj
+        self.results["nb_iter"] = len(search.index)
 
         return self.results
