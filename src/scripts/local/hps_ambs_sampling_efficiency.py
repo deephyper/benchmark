@@ -106,7 +106,6 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         num_workers = self.parameters["num_workers"]
         profile = self.profiler.profile
         search = self.search_result
-        self.parameters["nb_iter"] = len(search.index)
 
         # compute worker utilization
         t0 = profile.iloc[0].timestamp
