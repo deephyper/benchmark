@@ -22,6 +22,7 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         "n_points": 10000,
         "n_jobs": 1,
         "surrogate_model": "RF",
+        "liar_strategy": "cl_max",
     }
 
     def __init__(self, verbose=0):
@@ -53,6 +54,12 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         )
         assert self.parameters["n_points"] >= 0, err_msg.format(
             "n_points", "n_points", self.parameters["n_points"]
+        )
+        assert self.parameters["surrogate_model"] in ["RF", "ET", "GBRT", "DUMMY"], err_msg.format(
+            "surrogate_model", "in 'RF', 'ET', 'GBRT', 'DUMMY'", self.parameters["surrogate_model"]
+        )
+        assert self.parameters["liar_strategy"] in ["cl_min", "cl_max", "cl_mean", "topk", "boltzmann"], err_msg.format(
+            "liar_strategy", "in 'cl_min', 'cl_max', 'cl_mean', 'topk', 'boltzmann'", self.parameters["liar_strategy"]
         )
 
         return self.parameters
@@ -91,6 +98,7 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
             n_points=self.parameters["n_points"],
             n_jobs=self.parameters["n_jobs"],
             surrogate_model=self.parameters["surrogate_model"],
+            liar_strategy=self.parameters["liar_strategy"],
         )
 
     def execute(self):
