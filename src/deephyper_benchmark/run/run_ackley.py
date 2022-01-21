@@ -1,6 +1,7 @@
 import time
 import scipy.stats
 import numpy as np
+from deephyper.evaluator import profile
 
 
 def ackley(x, a=20, b=0.2, c=2 * np.pi):
@@ -10,7 +11,7 @@ def ackley(x, a=20, b=0.2, c=2 * np.pi):
     s2 = np.sum(np.cos(c * x))
     return -a * np.exp(-b * np.sqrt(s1 / n)) - np.exp(s2 / n) + a + np.exp(1)
 
-
+@profile
 def run(config, sleep_duration=0, sleep_duration_noise=0):
     if sleep_duration > 0:
         t_sleep = max(
