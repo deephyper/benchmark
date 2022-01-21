@@ -67,7 +67,7 @@ class BenchmarkHPSDMBSamplingEfficiency(Benchmark):
             self.problem.add_hyperparameter((-32.768, 32.768), f"x{i}")
 
         # initialize ray
-        ray.init(num_cpus=self.parameters["num_workers"]+1)
+        ray.init(adress="auto")
         self.parameters["num_workers"] = int(
             sum([node["Resources"].get("CPU", 0) for node in ray.nodes()])
         ) - 1
