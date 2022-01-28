@@ -67,7 +67,7 @@ class BenchmarkHPSDMBSamplingEfficiency(Benchmark):
             self.problem.add_hyperparameter((-32.768, 32.768), f"x{i}")
 
         # initialize ray
-        ray.init(adress="auto")
+        ray.init(address="auto")
         self.parameters["num_workers"] = int(
             sum([node["Resources"].get("CPU", 0) for node in ray.nodes()])
         ) - 1
@@ -109,7 +109,7 @@ class BenchmarkHPSDMBSamplingEfficiency(Benchmark):
         profile = pd.DataFrame(profile, columns=cols)
 
         # compute worker utilization
-        t0 = profile.iloc[0].timestamp
+        t0 = 0
         t_max = profile.iloc[-1].timestamp
         T_max = (t_max - t0) * num_workers
 
@@ -119,9 +119,6 @@ class BenchmarkHPSDMBSamplingEfficiency(Benchmark):
                 profile.timestamp.iloc[i + 1] - profile.timestamp.iloc[i]
             ) * profile.n_jobs_running.iloc[i]
         perc_util = cum / T_max
-
-        t0 = profile.iloc[0].timestamp
-        profile.timestamp -= t0
 
         best_obj = max(search.objective)
 
