@@ -7,7 +7,7 @@ from deephyper.problem import HpProblem
 from deephyper.search.hps import AMBS
 from deephyper_benchmark.benchmark import Benchmark
 
-import deephyper_benchmark.run.run_ackley as run_ackley
+import deephyper_benchmark.run.simulator as simulator
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class BenchmarkHPSAMBSSamplingEfficiency(Benchmark):
         logger.info("Creating the evaluator...")
         self.profiler = ProfilingCallback()
         self.evaluator = Evaluator.create(
-            run_ackley.run,
+            simulator.run,
             method="ray",
             method_kwargs={
                 "num_workers": self.parameters["num_workers"],

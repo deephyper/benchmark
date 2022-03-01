@@ -19,7 +19,8 @@ def run_config(config, verbose):
     params = _get_parameters(config)
     parameters = benchmark.load_parameters(params)
     results = benchmark.run()
-    _save_run(config, summary, env, parameters, results)
+    if results:
+        _save_run(config, summary, env, parameters, results)
 
 
 def _get_benchmark(config_path, verbose):

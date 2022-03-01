@@ -9,7 +9,7 @@ from deephyper.problem import HpProblem
 from deephyper.search.hps import DMBS
 from deephyper_benchmark.benchmark import Benchmark
 
-import deephyper_benchmark.run.run_ackley as run_ackley
+import deephyper_benchmark.run.simulator as simulator
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class BenchmarkHPSDMBSamplingEfficiency(Benchmark):
         logger.info("Creating the search...")
         self.search = DMBS(
             self.problem,
-            run_ackley.run,
+            simulator.run,
             run_function_kwargs={
                 "sleep_duration": self.parameters["sleep_duration"],
                 "sleep_duration_noise": self.parameters["sleep_duration_noise"],
