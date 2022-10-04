@@ -111,7 +111,7 @@ setup(
 
     # When your source code is in a subdirectory under the project root, e.g.
     # `src/`, it is necessary to specify the `package_dir` argument.
-    package_dir={'': 'src'},  # Optional
+    # package_dir={'': 'src'},  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -122,13 +122,13 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(where='src'),  # Required
+    packages=find_packages(where="."),  # Required
 
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match. See
     # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
-    python_requires='>=3.6, <4',
+    python_requires='>=3.6',
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
@@ -137,9 +137,9 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "deephyper",
-        "tinydb",
-        "streamlit"
+        # "deephyper",
+        # "tinydb",
+        # "streamlit"
         ],  # Optional
 
     # List additional groups of dependencies here (e.g. development
@@ -178,9 +178,9 @@ setup(
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
-        'console_scripts': [
-            'deephyper-benchmark=deephyper_benchmark.cli:main',
-        ],
+        # 'console_scripts': [
+        #     'deephyper-benchmark=deephyper_benchmark.cli:main',
+        # ],
     },
 
     # List additional URLs that are relevant to your project as a dict.
