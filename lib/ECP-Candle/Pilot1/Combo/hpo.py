@@ -3,6 +3,8 @@ import traceback
 from deephyper.evaluator import profile
 from deephyper.problem import HpProblem
 
+from .model import run_pipeline
+
 
 problem = HpProblem()
 
@@ -79,14 +81,14 @@ problem.add_hyperparameter(["std", "minmax", "maxabs"], "scaling", default_value
 
 
 @profile
-def run(config, verbose=0):
-    params = initialize_parameters()
-
-    params["epochs"] = 100
-    # params["timeout"] = 60 * 20  # 20 minutes per model
-    params["cp"] = False
-    params["verbose"] = verbose
-    params["tb"] = False
+def run(config):
+    
+    params = {
+        "epochs": 1,
+        "timeout": 60 * 30, # 30 minutes per model
+        "verbose": False
+    }
+    use_optuna = "optuna_trial" in config
 
     if len(config) > 0:
         dense = []
@@ -104,18 +106,10 @@ def run(config, verbose=0):
         params.update(config)
 
     try:
-        score = run_candle(params)
-
-        if isinstance(score, dict):
-            score["objective"] = max(score["objective"], -1)
-        else:
-            score = max(score, -1)
-
+        score = run_pipeline(params)
     except Exception as e:
         print(traceback.format_exc())
-        score = -1
-
-        if "optuna_trial" in params:
-            score = {"objective": score, "step": 1, "pruned": True}
-
+        score = {"objective": score, "num_parameters": 0}
+        if use_optuna:
+            score.update({"step": 0, "pruned": False})
     return score

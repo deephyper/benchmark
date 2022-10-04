@@ -6,14 +6,21 @@ logging.basicConfig(
     force=True,
 )
 
-from deephyper_benchmark import *
+import deephyper_benchmark as dhb
 
-# install("ECP-Candle/Pilot1/Combo")
+dhb.install("ECP-Candle/Pilot1/Combo")
 
-load("ECP-Candle/Pilot1/Combo")
+dhb.load("ECP-Candle/Pilot1/Combo")
 
-# required before importing candle
-from tensorflow.keras import backend as K
+# Run training with Testing scores
+from deephyper_benchmark.lib.ecp_candle.pilot1.combo import model 
+res = model.run_pipeline(mode="test")
+print(f"{res=}")
 
-import candle
-import combo
+# Run HPO-pipeline with default configuration of hyperparameters
+from deephyper_benchmark.lib.ecp_candle.pilot1.combo import hpo
+config = hpo.problem.default_configuration
+res = hpo.run(config)
+print(f"{res=}")
+
+

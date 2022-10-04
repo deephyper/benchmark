@@ -6,20 +6,23 @@ import json
 import logging
 import os
 import sys
+from tabnanny import verbose
 import threading
 import traceback
 import warnings
 from itertools import cycle, islice
 
-import candle
-import combo
-import NCI60
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-from scipy.stats.stats import pearsonr
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import GroupKFold, StratifiedKFold
+import yaml
+
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_CONFIG = os.path.join(HERE, "combo_default_model.yaml")
+
+#! must be placed before "import candle"
 from tensorflow import keras
 from tensorflow.keras import backend as K
 from tensorflow.keras import optimizers
@@ -34,6 +37,17 @@ from tensorflow.keras.callbacks import (
 from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import get_custom_objects
+
+import candle
+import combo
+import NCI60
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from scipy.stats.stats import pearsonr
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import GroupKFold, StratifiedKFold
+
 
 logger = logging.getLogger(__name__)
 
@@ -197,8 +211,6 @@ class ComboDataLoader(object):
         feature_subsample=None,
         scaling="std",
         scramble=False,
-        cv_partition="overlapping",
-        cv=0,
     ):
         """Initialize data merging drug response, drug descriptors and cell line essay.
            Shuffle and split training and validation set
@@ -232,8 +244,6 @@ class ComboDataLoader(object):
         scaling: None, 'std', 'minmax' or 'maxabs' (default 'std')
             type of feature scaling: 'maxabs' to [-1,1], 'maxabs' to [-1, 1], 'std' for standard normalization
         """
-
-        self.cv_partition = cv_partition
 
         self._random_state = np.random.RandomState(seed)
 
@@ -428,32 +438,6 @@ class ComboDataLoader(object):
         )
         logger.info("Total input dimensions: {}".format(self.input_dim))
 
-        # TODO: not used by default
-        if cv > 1:
-            if cv_partition == "disjoint":
-                pass
-            elif cv_partition == "disjoint_cells":
-                y = self.df_response["GROWTH"].values
-                groups = self.df_response["CELLNAME"].values
-                gkf = GroupKFold(n_splits=cv)
-                splits = gkf.split(y, groups=groups)
-                self.cv_train_indexes = []
-                self.cv_val_indexes = []
-                for index, (train_index, val_index) in enumerate(splits):
-                    print(index, train_index)
-                    self.cv_train_indexes.append(train_index)
-                    self.cv_val_indexes.append(val_index)
-            else:
-                y = self.df_response["GROWTH"].values
-                skf = StratifiedKFold(n_splits=cv, random_state=seed)
-                splits = skf.split(y, discretize(y, bins=cv))
-                self.cv_train_indexes = []
-                self.cv_val_indexes = []
-                for index, (train_index, val_index) in enumerate(splits):
-                    print(index, train_index)
-                    self.cv_train_indexes.append(train_index)
-                    self.cv_val_indexes.append(val_index)
-
     def load_data_all(self, switch_drugs=False):
         df_all = self.df_response
         y_all = df_all["GROWTH"].values
@@ -480,120 +464,79 @@ class ComboDataLoader(object):
 
         return x_all_list, y_all, df_all
 
-    def load_data_by_index(self, train_index, val_index):
+    def load_data_by_index(self, train_index, valid_index, test_index):
         x_all_list, y_all, df_all = self.load_data_all()
-        x_train_list = [x[train_index] for x in x_all_list]
-        x_val_list = [x[val_index] for x in x_all_list]
-        y_train = y_all[train_index]
-        y_val = y_all[val_index]
-        df_train = df_all.iloc[train_index, :]
-        df_val = df_all.iloc[val_index, :]
-        if self.cv_partition == "disjoint":
-            logger.info("Training drugs: {}".format(set(df_train["NSC1"])))
-            logger.info("Validation drugs: {}".format(set(df_val["NSC1"])))
-        elif self.cv_partition == "disjoint_cells":
-            logger.info("Training cells: {}".format(set(df_train["CELLNAME"])))
-            logger.info("Validation cells: {}".format(set(df_val["CELLNAME"])))
-        return x_train_list, y_train, x_val_list, y_val, df_train, df_val
 
-    def load_data_cv(self, fold):
-        train_index = self.cv_train_indexes[fold]
-        val_index = self.cv_val_indexes[fold]
-        return self.load_data_by_index(train_index, val_index)
+        x_train_list = [x[train_index] for x in x_all_list]
+        x_valid_list = [x[valid_index] for x in x_all_list]
+        x_test_list = [x[test_index] for x in x_all_list]
+
+        y_train = y_all[train_index]
+        y_valid = y_all[valid_index]
+        y_test = y_all[test_index]
+
+        df_train = df_all.iloc[train_index, :]
+        df_valid = df_all.iloc[valid_index, :]
+        df_test = df_all.iloc[test_index, :]
+
+        logger.info("Training drugs: {}".format(set(df_train["NSC1"])))
+        logger.info("Validation drugs: {}".format(set(df_valid["NSC1"])))
+        logger.info("Testing drugs: {}".format(set(df_test["NSC1"])))
+
+        return (
+            x_train_list,
+            y_train,
+            x_valid_list,
+            y_valid,
+            x_test_list,
+            y_test,
+            df_train,
+            df_valid,
+            df_test,
+        )
 
     def load_data(self):
-        if self.cv_partition == "disjoint":
-            train_index = self.df_response[
-                (self.df_response["NSC1"].isin(self.train_drug_ids))
-                & (self.df_response["NSC2"].isin(self.train_drug_ids))
-            ].index
-            val_index = self.df_response[
-                (self.df_response["NSC1"].isin(self.val_drug_ids))
-                & (self.df_response["NSC2"].isin(self.val_drug_ids))
-            ].index
-        else:
-            train_index = range(self.n_train)
-            val_index = range(self.n_train, self.total)
-        return self.load_data_by_index(train_index, val_index)
-
-
-class ComboDataGenerator(object):
-    """Generate training, validation or testing batches from loaded data"""
-
-    def __init__(self, data, partition="train", batch_size=32):
-        self.lock = threading.Lock()
-        self.data = data
-        self.partition = partition
-        self.batch_size = batch_size
-
-        if partition == "train":
-            self.cycle = cycle(range(data.n_train))
-            self.num_data = data.n_train
-        elif partition == "valid":
-            self.cycle = cycle(
-                range(data.total)[data.n_train : data.n_train + data.n_valid]
-            )
-            self.num_data = data.n_valid
-        elif partition == "test":
-            self.cycle = cycle(
-                range(data.total)[
-                    data.n_train
-                    + data.n_valid : data.n_train
-                    + data.n_valid
-                    + data.n_test
-                ]
-            )
-            self.num_data = data.n_test
-        else:
-            raise Exception('Data partition "{}" not recognized.'.format(partition))
-
-    def flow(self):
-        """Keep generating data batches"""
-        while 1:
-            self.lock.acquire()
-            indices = list(islice(self.cycle, self.batch_size))
-            self.lock.release()
-
-            df = self.data.df_response.iloc[indices, :]
-            y = df["GROWTH"].values
-
-            x_list = []
-
-            for fea in self.data.cell_features:
-                df_cell = getattr(self.data, self.data.cell_df_dict[fea])
-                df_x = pd.merge(df[["CELLNAME"]], df_cell, on="CELLNAME", how="left")
-                x_list.append(df_x.drop(["CELLNAME"], axis=1).values)
-
-            for drug in ["NSC1", "NSC2"]:
-                for fea in self.data.drug_features:
-                    df_drug = getattr(self.data, self.data.drug_df_dict[fea])
-                    df_x = pd.merge(
-                        df[[drug]], df_drug, left_on=drug, right_on="NSC", how="left"
-                    )
-                    x_list.append(df_x.drop([drug, "NSC"], axis=1).values)
-
-            yield x_list, y
-
-
-def test_generator(loader):
-    gen = ComboDataGenerator(loader).flow()
-    x_list, y = next(gen)
-    for x in x_list:
-        print(x.shape)
-    print(y.shape)
+        train_index = self.df_response[
+            (self.df_response["NSC1"].isin(self.train_drug_ids))
+            & (self.df_response["NSC2"].isin(self.train_drug_ids))
+        ].index
+        valid_index = self.df_response[
+            (self.df_response["NSC1"].isin(self.valid_drug_ids))
+            & (self.df_response["NSC2"].isin(self.valid_drug_ids))
+        ].index
+        test_index = self.df_response[
+            (self.df_response["NSC1"].isin(self.test_drug_ids))
+            & (self.df_response["NSC2"].isin(self.test_drug_ids))
+        ].index
+        return self.load_data_by_index(train_index, valid_index, test_index)
 
 
 def test_loader(loader):
-    x_train_list, y_train, x_val_list, y_val = loader.load_data()
+    (
+        x_train_list,
+        y_train,
+        x_val_list,
+        y_val,
+        x_test_list,
+        y_test,
+        _,
+        _,
+        _,
+    ) = loader.load_data()
     print("x_train shapes:")
     for x in x_train_list:
         print(x.shape)
     print("y_train shape:", y_train.shape)
 
-    print("x_val shapes:")
+    print("x_valid shapes:")
     for x in x_val_list:
         print(x.shape)
-    print("y_val shape:", y_val.shape)
+    print("y_valid shape:", y_val.shape)
+
+    print("x_test shapes:")
+    for x in x_test_list:
+        print(x.shape)
+    print("y_test shape:", y_test.shape)
 
 
 def r2(y_true, y_pred):
@@ -740,7 +683,6 @@ def build_model(loader, args, verbose=False):
 
 
 def initialize_parameters(default_model="combo_default_model.txt"):
-
     # Build benchmark object
     comboBmk = combo.BenchmarkCombo(
         combo.file_path,
@@ -756,24 +698,35 @@ def initialize_parameters(default_model="combo_default_model.txt"):
     return gParameters
 
 
-def run_candle():
+def yaml_load(path):
+    with open(path, "r") as f:
+        yaml_data = yaml.load(f, Loader=Loader)
+    return yaml_data
+
+
+def run_pipeline(config: dict = None, mode="valid"):
+
+    # Default Config from original Benchmark
     params = initialize_parameters()
+
+    # Default Config from our Benchmark
+    params.update(yaml_load(DEFAULT_CONFIG))
+    params.pop("val_split")
+
+    # Ingest input configuration
+    if config:
+        params.update(config)
+
+    use_optuna = "optuna_trial" in params
+
     args = candle.ArgumentStruct(**params)
     seed = args.rng_seed
     candle.set_seed(seed)
 
-    # args = candle.ArgumentStruct(**params)
-    # candle.set_seed(args.rng_seed)
-    # ext = extension_from_parameters(args)
-    # verify_path(args.save_path)
-    # prefix = args.save_path + ext
-    # logfile = args.logfile if args.logfile else prefix + ".log"
-    # set_up_logger(logfile, args.verbose)
-    # logger.info("Params: {}".format(params))
-
     loader = ComboDataLoader(
         seed=args.rng_seed,
-        val_split=args.val_split,
+        valid_split=args.valid_split,
+        test_split=args.test_split,
         cell_features=args.cell_features,
         drug_features=args.drug_features,
         use_mean_growth=args.use_mean_growth,
@@ -783,21 +736,12 @@ def run_candle():
         exclude_cells=args.exclude_cells,
         exclude_drugs=args.exclude_drugs,
         use_combo_score=args.use_combo_score,
-        cv_partition=args.cv_partition,
-        cv=args.cv,
         scaling=args.scaling,
     )
 
+    # test_loader(loader)
 
-    train_gen = ComboDataGenerator(loader, batch_size=args.batch_size).flow()
-    val_gen = ComboDataGenerator(
-        loader, partition="val", batch_size=args.batch_size
-    ).flow()
-
-    train_steps = int(loader.n_train / args.batch_size)
-    val_steps = int(loader.n_val / args.batch_size)
-
-    model = build_model(loader, args, verbose=False)
+    model = build_model(loader, args, verbose=args.verbose)
 
     def warmup_scheduler(epoch):
         lr = args.learning_rate or base_lr * args.batch_size / 100
@@ -806,189 +750,139 @@ def run_candle():
         logger.debug("Epoch {}: lr={}".format(epoch, K.get_value(model.optimizer.lr)))
         return K.get_value(model.optimizer.lr)
 
-    df_pred_list = []
+    model = build_model(loader, args)
 
-    cv_ext = ""
-    cv = args.cv if args.cv > 1 else 1
+    optimizer = optimizers.deserialize({"class_name": args.optimizer, "config": {}})
+    base_lr = args.base_lr or K.get_value(optimizer.lr)
+    if args.learning_rate:
+        K.set_value(optimizer.lr, args.learning_rate)
 
-    fold = 0
-    while fold < cv:
-        if args.cv > 1:
-            logger.info("Cross validation fold {}/{}:".format(fold + 1, cv))
-            cv_ext = ".cv{}".format(fold + 1)
+    model.compile(loss=args.loss, optimizer=optimizer, metrics=[mae, r2])
 
-        model = build_model(loader, args)
+    # calculate trainable and non-trainable params
+    params.update(candle.compute_trainable_params(model))
 
-        optimizer = optimizers.deserialize({"class_name": args.optimizer, "config": {}})
-        base_lr = args.base_lr or K.get_value(optimizer.lr)
-        if args.learning_rate:
-            K.set_value(optimizer.lr, args.learning_rate)
-
-        model.compile(loss=args.loss, optimizer=optimizer, metrics=[mae, r2])
-
-        # calculate trainable and non-trainable params
-        params.update(candle.compute_trainable_params(model))
-
-        early_stopping = EarlyStopping(
-            monitor="val_loss", patience=args.early_stopping_patience
-        )
-
-        # candle_monitor = candle.CandleRemoteMonitor(params=params)
-        timeout_monitor = candle.TerminateOnTimeOut(params["timeout"])
-
-        reduce_lr = ReduceLROnPlateau(
-            monitor="val_loss",
-            factor=args.reduce_lr_factor,
-            patience=args.reduce_lr_patience,
-            min_lr=0.00001
-            # monitor="val_loss", factor=0.5, patience=5, min_lr=0.00001
-        )
-        warmup_lr = LearningRateScheduler(warmup_scheduler)
-        checkpointer = ModelCheckpoint(
-            prefix + cv_ext + ".weights.h5", save_best_only=True, save_weights_only=True
-        )
-        tensorboard = TensorBoard(log_dir="tb/tb{}{}".format(ext, cv_ext))
-        history_logger = LoggingCallback(logger.debug)
-        # model_recorder = ModelRecorder()
-
-        # callbacks = [history_logger, model_recorder]
-        # callbacks = [candle_monitor, timeout_monitor, history_logger, model_recorder]
-        callbacks = [timeout_monitor]
-        if args.verbose:
-            callbacks.append(history_logger)
-        if args.early_stopping:
-            callbacks.append(early_stopping)
-        if args.reduce_lr:
-            callbacks.append(reduce_lr)
-        if args.warmup_lr:
-            callbacks.append(warmup_lr)
-        if args.cp:
-            callbacks.append(checkpointer)
-        if args.tb:
-            callbacks.append(tensorboard)
-
-        if "optuna_trial" in params:
-            pruning_cb = TFKerasPruningCallback(
-                params["optuna_trial"], monitor="val_r2"
-            )
-            callbacks.append(pruning_cb)
-
-        if args.gen:
-            history = model.fit_generator(
-                train_gen,
-                train_steps,
-                epochs=args.epochs,
-                callbacks=callbacks,
-                validation_data=val_gen,
-                validation_steps=val_steps,
-            )
-            fold += 1
-        else:
-            if args.cv > 1:
-                (
-                    x_train_list,
-                    y_train,
-                    x_val_list,
-                    y_val,
-                    df_train,
-                    df_val,
-                ) = loader.load_data_cv(fold)
-            else:
-                (
-                    x_train_list,
-                    y_train,
-                    x_val_list,
-                    y_val,
-                    df_train,
-                    df_val,
-                ) = loader.load_data()
-
-            y_shuf = np.random.permutation(y_val)
-            log_evaluation(
-                evaluate_prediction(y_val, y_shuf),
-                description="Between random pairs in y_val:",
-            )
-            history = model.fit(
-                x_train_list,
-                y_train,
-                batch_size=args.batch_size,
-                shuffle=args.shuffle,
-                epochs=args.epochs,
-                callbacks=callbacks,
-                validation_data=(x_val_list, y_val),
-                verbose=args.verbose,
-            )
-
-        if not args.gen:
-            y_val_pred = model.predict(x_val_list, batch_size=args.batch_size).flatten()
-            scores = evaluate_prediction(y_val, y_val_pred)
-            if args.cv > 1 and scores[args.loss] > args.max_val_loss:
-                logger.warn(
-                    "Best val_loss {} is greater than {}; retrain the model...".format(
-                        scores[args.loss], args.max_val_loss
-                    )
-                )
-                continue
-            else:
-                fold += 1
-            log_evaluation(scores)
-            df_val.is_copy = False
-            df_val.loc[:, "GROWTH_PRED"] = y_val_pred
-            df_val.loc[:, "GROWTH_ERROR"] = y_val_pred - y_val
-            df_pred_list.append(df_val)
-
-        if K.backend() == "tensorflow":
-            K.clear_session()
-
-    logger.handlers = []
-
-    # objective = history.history["val_r2"][-1]
-    # if "optuna_trial" in params:
-    #     return {
-    #         "objective": objective,
-    #         "step": pruning_cb.step,
-    #         "pruned": pruning_cb.pruned,
-    #     }
-    # else:
-    #     return objective
-
-
-def full_training(config):
-
-    config["epochs"] = 100
-    config["timeout"] = 60 * 60 * 1  # 1 hour
-
-    run(config, verbose=1)
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(description="ECP-Candle Attn Benchmark Parser.")
-
-    parser.add_argument(
-        "--json",
-        type=str,
-        default=None,
-        help="Path to the JSON file containing configuration to test.",
+    early_stopping = EarlyStopping(
+        monitor="val_loss", patience=args.early_stopping_patience
     )
-    return parser
 
+    timeout_monitor = candle.TerminateOnTimeOut(params["timeout"])
 
-def load_json(f):
-    with open(f, "r") as f:
-        js_data = json.load(f)
-    return js_data
+    reduce_lr = ReduceLROnPlateau(
+        monitor="val_loss",
+        factor=args.reduce_lr_factor,
+        patience=args.reduce_lr_patience,
+        min_lr=0.00001,
+    )
+    warmup_lr = LearningRateScheduler(warmup_scheduler)
 
+    callbacks = [timeout_monitor]
+    if args.early_stopping:
+        callbacks.append(early_stopping)
+    if args.reduce_lr:
+        callbacks.append(reduce_lr)
+    if args.warmup_lr:
+        callbacks.append(warmup_lr)
 
-if __name__ == "__main__":
+    # Optuna
+    if use_optuna:
+        pruning_cb = TFKerasPruningCallback(params["optuna_trial"], monitor="val_r2")
+        callbacks.append(pruning_cb)
 
-    parser = create_parser()
-    args = parser.parse_args()
-
-    sys.argv = sys.argv[:1]
-
-    if args.json:
-        config = load_json(args.json)["0"]
+    if mode == "valid":
+        x_train_list, y_train, x_valid_list, y_valid, _, _, _, _, _ = loader.load_data()
+        training_data = (x_train_list, y_train)
+        validation_data = (x_valid_list, y_valid)
     else:
-        config = hp_problem.default_configuration
+        (
+            x_train_list,
+            y_train,
+            x_valid_list,
+            y_valid,
+            x_test_list,
+            y_test,
+            _,
+            _,
+            _,
+        ) = loader.load_data()
+        training_data = (x_train_list, y_train)
+        validation_data = (x_valid_list, y_valid)
 
-    full_training(config)
+    num_parameters = model.count_params()
+
+    model.fit(
+        *training_data,
+        batch_size=args.batch_size,
+        shuffle=args.shuffle,
+        epochs=args.epochs,
+        validation_data=validation_data,
+        callbacks=callbacks,
+        verbose=args.verbose,
+    )
+
+    if mode == "valid":
+        y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
+        scores = evaluate_prediction(y_valid, y_valid_pred)
+    else:
+        y_test_pred = model.predict(x_test_list, batch_size=args.batch_size).flatten()
+        scores = evaluate_prediction(y_test, y_test_pred)
+
+    if args.verbose:
+        log_evaluation(scores, f"Computing scores for mode='{mode}'")
+
+    if K.backend() == "tensorflow":
+        K.clear_session()
+
+    objective = scores["r2"]  # validation R2
+    objective = max(-1, objective)
+
+    if use_optuna:
+        return {
+            "objective": objective,
+            "step": pruning_cb.step,
+            "pruned": pruning_cb.pruned,
+            "num_parameters": num_parameters,
+        }
+    else:
+        return {"objective": objective, "num_parameters": num_parameters}
+
+
+# def full_training(config):
+
+#     config["epochs"] = 100
+#     config["timeout"] = 60 * 60 * 1  # 1 hour
+
+#     run(config, verbose=1)
+
+
+# def create_parser():
+#     parser = argparse.ArgumentParser(description="ECP-Candle Attn Benchmark Parser.")
+
+#     parser.add_argument(
+#         "--json",
+#         type=str,
+#         default=None,
+#         help="Path to the JSON file containing configuration to test.",
+#     )
+#     return parser
+
+
+# def load_json(f):
+#     with open(f, "r") as f:
+#         js_data = json.load(f)
+#     return js_data
+
+
+# if __name__ == "__main__":
+
+#     parser = create_parser()
+#     args = parser.parse_args()
+
+#     sys.argv = sys.argv[:1]
+
+#     if args.json:
+#         config = load_json(args.json)["0"]
+#     else:
+#         config = hp_problem.default_configuration
+
+#     full_training(config)

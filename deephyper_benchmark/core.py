@@ -1,14 +1,15 @@
-import os
-import logging
 import importlib
+import importlib.util
+import logging
+import os
 import sys
 
 PKG_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-BCH_ROOT_DIR = os.path.join(os.path.dirname(PKG_ROOT_DIR), "benchmarks")
+BCH_ROOT_DIR = os.path.join(os.path.dirname(PKG_ROOT_DIR), "lib")
 
-def find_benchmark(name):
+def find_benchmark(benchmark_name):
 
-    benchmark_path = os.path.join(BCH_ROOT_DIR, name)
+    benchmark_path = os.path.join(BCH_ROOT_DIR, benchmark_name)
     sys.path.insert(0, benchmark_path)
     benchmark_module = importlib.import_module("benchmark")
    
@@ -29,6 +30,7 @@ def find_benchmark(name):
     
     benchmark = benchmark_class()
     benchmark.cwd = benchmark_path
+    benchmark.name = benchmark_name.replace("-","_").replace("/",".").lower()
 
     return benchmark
 
@@ -45,9 +47,11 @@ def load(name):
     logging.info(f"loading {name}")
 
     benchmark = find_benchmark(name)
-    benchmark.load()
+    module = benchmark.load()
 
     logging.info(f"loading done")
+
+    return module
 
 
 
@@ -55,6 +59,7 @@ def load(name):
 class Benchmark:
 
     def __init__(self):
+        self.name = None
         self.cwd = None
 
     def install(self):
@@ -78,3 +83,12 @@ class Benchmark:
                 path = require_val["path"]
                 logging.info(f"adding {path} to PYTHONPATH")
                 sys.path.insert(0, path)
+
+        module_name = f"deephyper_benchmark.lib.{self.name}"
+        spec = importlib.util.spec_from_file_location(module_name, f"{self.cwd}/__init__.py")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        self.module = module
+    
+        return self.module
