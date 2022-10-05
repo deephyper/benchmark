@@ -84,7 +84,7 @@ problem.add_hyperparameter(["std", "minmax", "maxabs"], "scaling", default_value
 def run(config):
     
     params = {
-        "epochs": 1,
+        "epochs": 50,
         "timeout": 60 * 30, # 30 minutes per model
         "verbose": False
     }
@@ -109,7 +109,7 @@ def run(config):
         score = run_pipeline(params)
     except Exception as e:
         print(traceback.format_exc())
-        score = {"objective": score, "num_parameters": 0}
+        score = {"objective": -1, "num_parameters": 0}
         if use_optuna:
             score.update({"step": 0, "pruned": False})
     return score

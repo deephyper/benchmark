@@ -11,6 +11,7 @@ def find_benchmark(benchmark_name):
 
     benchmark_path = os.path.join(BCH_ROOT_DIR, benchmark_name)
     sys.path.insert(0, benchmark_path)
+    # looking for "benchmark.py" in the benchmark folder
     benchmark_module = importlib.import_module("benchmark")
    
     benchmark_class = None
