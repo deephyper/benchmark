@@ -1,16 +1,9 @@
 from __future__ import division, print_function
 
-import argparse
 import collections
-import json
 import logging
 import os
-import sys
-from tabnanny import verbose
-import threading
-import traceback
 import warnings
-from itertools import cycle, islice
 
 import yaml
 
@@ -30,9 +23,7 @@ from tensorflow.keras.callbacks import (
     Callback,
     EarlyStopping,
     LearningRateScheduler,
-    ModelCheckpoint,
     ReduceLROnPlateau,
-    TensorBoard,
 )
 from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.models import Model
@@ -46,22 +37,14 @@ import pandas as pd
 import tensorflow as tf
 from scipy.stats.stats import pearsonr
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import GroupKFold, StratifiedKFold
 
 
 logger = logging.getLogger(__name__)
 
 import optuna
 
-#!!! DeepHyper Problem [START]
-# Base on: https://github.com/ECP-CANDLE/Benchmarks/blob/develop/Pilot1/Combo/combo_default_model.txt
-from deephyper.evaluator import profile
-
-#!!! DeepHyper Problem [END]
-
 np.set_printoptions(precision=4)
 tf.compat.v1.disable_eager_execution()
-
 
 class TFKerasPruningCallback(tf.keras.callbacks.Callback):
     """tf.keras callback to prune unpromising trials.
@@ -119,28 +102,6 @@ def verify_path(path):
     folder = os.path.dirname(path)
     if folder and not os.path.exists(folder):
         os.makedirs(folder)
-
-
-def set_up_logger(logfile, verbose):
-    if verbose:
-        verify_path(logfile)
-        fh = logging.FileHandler(logfile)
-        fh.setFormatter(
-            logging.Formatter(
-                "[%(asctime)s %(process)d] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-            )
-        )
-        fh.setLevel(logging.DEBUG)
-
-        sh = logging.StreamHandler(sys.stdout)
-        sh.setFormatter(logging.Formatter(""))
-        sh.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(fh)
-        logger.addHandler(sh)
-    else:
-        logger.disabled = True
 
 
 def extension_from_parameters(args):
@@ -358,8 +319,6 @@ class ComboDataLoader(object):
 
         logger.info("Unique cell lines: {}".format(df["CELLNAME"].nunique()))
         logger.info("Unique drugs: {}".format(n_drugs))
-        # df.to_csv('filtered.growth.min.tsv', sep='\t', index=False, float_format='%.4g')
-        # df.to_csv('filtered.score.max.tsv', sep='\t', index=False, float_format='%.4g')
 
         if shuffle:
             df = df.sample(frac=1.0, random_state=seed).reset_index(drop=True)
@@ -393,7 +352,7 @@ class ComboDataLoader(object):
         self.n_valid = int(self.total * valid_split)
         self.n_test = int(self.total * test_split)
         self.n_train = self.total - self.n_valid - self.n_test
-        logger.info("Rows in train: {}, val: {}".format(self.n_train, self.n_valid))
+        logger.info("Rows in train: {}, valid: {}, test: {}".format(self.n_train, self.n_valid, self.n_test))
 
         self.cell_df_dict = {
             "expression": "df_cell_expr",
@@ -479,10 +438,6 @@ class ComboDataLoader(object):
         df_valid = df_all.iloc[valid_index, :]
         df_test = df_all.iloc[test_index, :]
 
-        logger.info("Training drugs: {}".format(set(df_train["NSC1"])))
-        logger.info("Validation drugs: {}".format(set(df_valid["NSC1"])))
-        logger.info("Testing drugs: {}".format(set(df_test["NSC1"])))
-
         return (
             x_train_list,
             y_train,
@@ -496,18 +451,9 @@ class ComboDataLoader(object):
         )
 
     def load_data(self):
-        train_index = self.df_response[
-            (self.df_response["NSC1"].isin(self.train_drug_ids))
-            & (self.df_response["NSC2"].isin(self.train_drug_ids))
-        ].index
-        valid_index = self.df_response[
-            (self.df_response["NSC1"].isin(self.valid_drug_ids))
-            & (self.df_response["NSC2"].isin(self.valid_drug_ids))
-        ].index
-        test_index = self.df_response[
-            (self.df_response["NSC1"].isin(self.test_drug_ids))
-            & (self.df_response["NSC2"].isin(self.test_drug_ids))
-        ].index
+        train_index = range(self.n_train)
+        valid_index = range(self.n_train, self.n_train+self.n_valid)
+        test_index = range(self.n_train+self.n_valid, self.n_train+self.n_valid+self.n_test)
         return self.load_data_by_index(train_index, valid_index, test_index)
 
 
@@ -824,11 +770,17 @@ def run_pipeline(config: dict = None, mode="valid"):
         y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
         scores = evaluate_prediction(y_valid, y_valid_pred)
     else:
+        y_train_pred = model.predict(x_train_list, batch_size=args.batch_size).flatten()
+        scores_train = evaluate_prediction(y_train, y_train_pred)
+        y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
+        scores = evaluate_prediction(y_valid, y_valid_pred)
         y_test_pred = model.predict(x_test_list, batch_size=args.batch_size).flatten()
-        scores = evaluate_prediction(y_test, y_test_pred)
+        scores_test = evaluate_prediction(y_test, y_test_pred)
 
-    if args.verbose:
-        log_evaluation(scores, f"Computing scores for mode='{mode}'")
+        if args.verbose:
+            log_evaluation(scores_train, f"Computing scores for Train Data")
+            log_evaluation(scores, f"Computing scores for Valid Data")
+            log_evaluation(scores_test , f"Computing scores for Test  Data")
 
     if K.backend() == "tensorflow":
         K.clear_session()
@@ -845,44 +797,3 @@ def run_pipeline(config: dict = None, mode="valid"):
         }
     else:
         return {"objective": objective, "num_parameters": num_parameters}
-
-
-# def full_training(config):
-
-#     config["epochs"] = 100
-#     config["timeout"] = 60 * 60 * 1  # 1 hour
-
-#     run(config, verbose=1)
-
-
-# def create_parser():
-#     parser = argparse.ArgumentParser(description="ECP-Candle Attn Benchmark Parser.")
-
-#     parser.add_argument(
-#         "--json",
-#         type=str,
-#         default=None,
-#         help="Path to the JSON file containing configuration to test.",
-#     )
-#     return parser
-
-
-# def load_json(f):
-#     with open(f, "r") as f:
-#         js_data = json.load(f)
-#     return js_data
-
-
-# if __name__ == "__main__":
-
-#     parser = create_parser()
-#     args = parser.parse_args()
-
-#     sys.argv = sys.argv[:1]
-
-#     if args.json:
-#         config = load_json(args.json)["0"]
-#     else:
-#         config = hp_problem.default_configuration
-
-#     full_training(config)

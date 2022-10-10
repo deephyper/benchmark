@@ -8,7 +8,7 @@ logging.basicConfig(
 
 import deephyper_benchmark as dhb
 
-dhb.install("ECP-Candle/Pilot1/Combo")
+# dhb.install("ECP-Candle/Pilot1/Combo")
 
 dhb.load("ECP-Candle/Pilot1/Combo")
 
