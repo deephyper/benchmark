@@ -650,7 +650,7 @@ def yaml_load(path):
     return yaml_data
 
 
-def run_pipeline(config: dict = None, mode="valid"):
+def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
 
     # Default Config from original Benchmark
     params = initialize_parameters()
@@ -663,7 +663,7 @@ def run_pipeline(config: dict = None, mode="valid"):
     if config:
         params.update(config)
 
-    use_optuna = "optuna_trial" in params
+    use_optuna = not(optuna_trial is None)
 
     args = candle.ArgumentStruct(**params)
     seed = args.rng_seed
@@ -732,7 +732,7 @@ def run_pipeline(config: dict = None, mode="valid"):
 
     # Optuna
     if use_optuna:
-        pruning_cb = TFKerasPruningCallback(params["optuna_trial"], monitor="val_r2")
+        pruning_cb = TFKerasPruningCallback(optuna_trial, monitor="val_r2")
         callbacks.append(pruning_cb)
 
     if mode == "valid":

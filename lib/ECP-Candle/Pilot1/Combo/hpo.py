@@ -81,14 +81,14 @@ problem.add_hyperparameter(["std", "minmax", "maxabs"], "scaling", default_value
 
 
 @profile
-def run(config):
+def run(config, optuna_trial=None):
     
     params = {
         "epochs": 50,
         "timeout": 60 * 30, # 30 minutes per model
         "verbose": False
     }
-    use_optuna = "optuna_trial" in config
+    use_optuna = not(optuna_trial i None)
 
     if len(config) > 0:
         dense = []
@@ -106,7 +106,7 @@ def run(config):
         params.update(config)
 
     try:
-        score = run_pipeline(params)
+        score = run_pipeline(params, mode="valid", optuna_trial=optuna_trial)
     except Exception as e:
         print(traceback.format_exc())
         score = {"objective": -1, "num_parameters": 0}
