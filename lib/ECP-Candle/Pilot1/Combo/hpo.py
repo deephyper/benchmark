@@ -88,7 +88,7 @@ def run(config, optuna_trial=None):
         "timeout": 60 * 30, # 30 minutes per model
         "verbose": False
     }
-    use_optuna = not(optuna_trial i None)
+    use_optuna = not(optuna_trial is None)
 
     if len(config) > 0:
         dense = []
