@@ -80,6 +80,22 @@ problem.add_hyperparameter(
 problem.add_hyperparameter(["std", "minmax", "maxabs"], "scaling", default_value="std")
 
 
+def remap_hyperparameters(config: dict):
+    """Transform input configurations of hyperparameters to the format accepted by the candle benchmark."""
+    dense = []
+    dense_feature_layers = []
+    for i in range(len(default_dense)):
+
+        key = f"dense_{i}"
+        dense.append(config.pop(key))
+
+        key = f"dense_feature_layers_{i}"
+        dense_feature_layers.append(config.pop(key))
+
+    config["dense"] = dense
+    config["dense_feature_layers"] = dense_feature_layers
+
+
 @profile
 def run(config, optuna_trial=None):
     
@@ -91,18 +107,7 @@ def run(config, optuna_trial=None):
     use_optuna = not(optuna_trial is None)
 
     if len(config) > 0:
-        dense = []
-        dense_feature_layers = []
-        for i in range(len(default_dense)):
-
-            key = f"dense_{i}"
-            dense.append(config.pop(key))
-
-            key = f"dense_feature_layers_{i}"
-            dense_feature_layers.append(config.pop(key))
-
-        config["dense"] = dense
-        config["dense_feature_layers"] = dense_feature_layers
+        remap_hyperparameters(config)
         params.update(config)
 
     try:
@@ -112,4 +117,14 @@ def run(config, optuna_trial=None):
         score = {"objective": -1, "num_parameters": 0}
         if use_optuna:
             score.update({"step": 0, "pruned": False})
+
     return score
+
+
+def evaluate(config):
+    """Evaluate an hyperparameter configuration on training/validation and testing data."""
+    
+    params = {"epochs": 100, "timeout": 60 * 60, "verbose": True}  # 60 minutes per model
+    remap_hyperparameters(config)
+    params.update(config)
+    run_pipeline(params, mode="test")
