@@ -89,7 +89,7 @@ class TFKerasPruningCallback(tf.keras.callbacks.Callback):
             return
 
         # Report current score and epoch to Optuna's trial.
-        self.step = epoch
+        self.step = epoch+1
         self._trial.report(float(current_score), step=self.step)
 
         # Prune trial if needed
@@ -791,7 +791,7 @@ def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
     if use_optuna:
         return {
             "objective": objective,
-            "step": pruning_cb.step,
+            "budget": pruning_cb.step,
             "pruned": pruning_cb.pruned,
             "num_parameters": num_parameters,
         }

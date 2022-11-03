@@ -116,7 +116,7 @@ def run(config, optuna_trial=None):
         print(traceback.format_exc())
         score = {"objective": -1, "num_parameters": 0}
         if use_optuna:
-            score.update({"step": 0, "pruned": False})
+            score.update({"budget": 0, "pruned": False})
 
     return score
 
