@@ -80,68 +80,104 @@ def convection_diffusion(NT, NX, TMAX, XMAX, NU):
 class PINN(tf.keras.Model):
     def __init__(self, num_layers, hidden_dim, output_dim, act_fn):
         super().__init__()
-        self.lys = [tf.keras.layers.Dense(units=hidden_dim, activation=act_fn)]
+
+        if act_fn == "relu":
+            self.act_fn = tf.nn.relu
+        elif act_fn == "leaky_relu":
+            self.act_fn = tf.nn.leaky_relu
+        elif act_fn == "elu":
+            self.act_fn = tf.nn.elu
+        elif act_fn == "gelu":
+            self.act_fn = tf.nn.gelu
+        elif act_fn == "tanh":
+            self.act_fn = tf.nn.tanh
+        elif act_fn == "sigmoid":
+            self.act_fn = tf.nn.sigmoid
+        else:
+            raise ValueError("%s is not in the activation function list" % act_fn)
+
+        self.lys = [tf.keras.layers.Dense(units=hidden_dim, activation=self.act_fn, kernel_initializer='glorot_uniform',bias_initializer='zeros')]
         for n in range(num_layers):
-            self.lys.append(tf.keras.layers.Dense(units=hidden_dim, activation=act_fn))
-        self.lys.append(tf.keras.layers.Dense(units=output_dim, activation=None))
+            self.lys.append(tf.keras.layers.Dense(units=hidden_dim, activation=self.act_fn, kernel_initializer='glorot_uniform',bias_initializer='zeros'))
+        self.lys.append(tf.keras.layers.Dense(units=output_dim, activation=None, kernel_initializer='glorot_uniform',bias_initializer='zeros'))
     
-    def call(self, x):
+    def call(self, x, t):
         x = tf.cast(x, tf.float32)
-        for layer in self.layers:
-            x = layer(x)
-        return x
+        t = tf.cast(t, tf.float32)
+
+        x_concat = tf.stack((x,t), axis=1)
+        for layer in self.lys:
+            x_concat = layer(x_concat)
+        return x_concat
 
 class BurgerSupervisor:
     def __init__(self, nu, net, epochs, batch_size, lr, alpha):
         self.nu = nu
-        self.net = net
+        self.net = net # the net predicting u from x, t pairs.
         self.epochs = epochs
         self.batch_size = batch_size
 
         self.alpha = alpha
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    
-    def u_loss(self, u_true, x):
-        u_l = tf.reduce_mean((self.net(x) - u_true)**2)
-        return u_l 
 
-    def f_loss(self, x):
+        self.loss = tf.losses.MeanSquaredError()
+    
+
+    # def u_net(self, x, t):
+    #     u = self.net(x, t)
+    #     return u
+
+
+    def f_net(self, x, t):
         x = tf.cast(x, tf.float32)
-        t = tf.Variable(x[:, 1])
-        x = tf.Variable(x[:, 0])
-        with tf.GradientTape() as t2:
-            with tf.GradientTape(persistent=True) as tape:
-                inputs = tf.stack((x,t), axis=1)
-                u_ = self.net(inputs)
+        t = tf.cast(t, tf.float32)
+        with tf.GradientTape(persistent=True) as tape:
+            tape.watch(x)
+            tape.watch(t)
+            u_ = tf.squeeze(self.net(x, t))
             u_x = tape.gradient(u_, x)
             u_t = tape.gradient(u_, t)
-        u_xx = t2.gradient(u_x, x)
+            u_xx = tape.gradient(u_x, x)
+        del tape
         f = u_t + (u_ * u_x) - (self.nu * u_xx)
-        return tf.reduce_mean(f**2)
+        return f
     
-    def loss(self, x_u, y_u, x_f):
-        total_loss = self.u_loss(y_u, x_u) + self.alpha*self.f_loss(x_f) 
-        return total_loss
+    # @tf.function
+    # def loss(self, true, pred):
+    #     true = tf.cast(true, tf.float32)
+    #     ls = tf.reduce_mean((tf.square(true - pred)))
+    #     return ls
     
-    def train(self, x_train, y_train, x_val, y_val):
+    def train(self, x_train, y_train, x_val):
         x_u_train = x_train[0]
         x_f_train = x_train[1]
+
+        x_u = x_u_train[:, 0]
+        t_u = x_u_train[:, 1]
+
+        x_f = x_f_train[:, 0]
+        t_f = x_f_train[:, 1]
         for i in range(self.epochs):
             train_ls = []
-            for j in range(len(x_u_train) // self.batch_size):
-                x_train_batch = x_u_train[j*self.batch_size : (j+1)*self.batch_size]
-                y_train_batch = y_train[j*self.batch_size : (j+1)*self.batch_size]
-                with tf.GradientTape() as t:
-                    loss_ = self.loss(x_train_batch, y_train_batch, x_f_train)
-                    train_ls.append(loss_)
-                grads = t.gradient(loss_, self.net.trainable_weights)
-                self.optimizer.apply_gradients(zip(grads, self.net.trainable_weights))
-            
+            # for j in range(len(x_f_train) // self.batch_size):
+            #     x_train_batch = x_u_train#[j*self.batch_size : (j+1)*self.batch_size]
+            #     y_train_batch = y_train#[j*self.batch_size : (j+1)*self.batch_size]
+            #     x_f_train_batch = x_f_train[j*self.batch_size : (j+1)*self.batch_size]
+            with tf.GradientTape() as t:
+                u_out = self.net(x_u, t_u)
+                f_out = self.f_net(x_f, t_f)
+                loss_u = self.loss(y_train, u_out)
+                loss_f = self.loss(0, f_out) 
+                tot_loss = loss_u + self.alpha * loss_f
+                train_ls.append(tot_loss)
+            grads = t.gradient(tot_loss, self.net.trainable_weights)
+            self.optimizer.apply_gradients(zip(grads, self.net.trainable_weights))
+        
             # validation loss
-            val_r2 = self.r2(y_val, self.net(x_val))
-            val_f_loss = self.f_loss(x_val)
-            print("Epoch %d, training loss: %.4f, validation r2: %.4f, validiation PDE loss %.4f" % (i+1, tf.reduce_mean(train_ls), val_r2, val_f_loss))
-        return val_r2, val_f_loss # return the objective.
+            #val_r2 = self.r2(y_val, self.net(x_val[:, 0], x_val[:, 1]))
+            val_f_loss = self.loss(0, self.f_net(x_val[:, 0], x_val[:, 1])).numpy()
+            print("Epoch %d, training loss: (%.4f, %.4f), validiation PDE loss %.4f" % (i+1, loss_u.numpy(), loss_f.numpy(), val_f_loss))
+        return val_f_loss # return the objective.
                 
     def r2(self, true, pred):
         true = tf.cast(true, tf.float32)
@@ -196,20 +232,25 @@ def get_data(NT, NX, TMAX, XMAX, NU):
     y_val = y_[col_idx][:2048]
     return (x_u_train[u_idx], x_f_train), y_u_train[u_idx], (x_val, y_val), (x_, y_)
 
-def plotter(x_, u_, name):
+def plotter(x_, u_, name, NUMX, NUMT):
+    """
+    x_: shape=[num_points, 2]. First dim being x and second t.
+    u_: shape=[num_points,]
+    NUMX: number of points the in x-direction.
+    NUMT: number of points the in t-direction.
+    """
     import matplotlib.animation as animation
-    # u_analytical,x = convection_diffusion(1024, 256, 2, 2.0*PI, 0.01)
 
-    # x = np.linspace(0, 2.0*PI, 256)
-    # t = np.linspace(0, 2, 1024)
-    # xv, tv = np.meshgrid(x, t)
-    u_ = u_.reshape(1024, 256).T
-    xv = x_[:,0].reshape(1024, 256)
-    tv = x_[:, 1].reshape(1024, 256)
+    u_ = u_.reshape(NUMT, NUMX).T
+    xv = x_[:,0].reshape(NUMT, NUMX)
+    tv = x_[:, 1].reshape(NUMT, NUMX)
 
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(2, 1)
-    ax[0].contourf(tv, xv, u_.T)
+    ax[0].imshow(u_, interpolation='nearest',
+                      cmap='rainbow', 
+                      extent=[tv.min(), tv.max(), xv.min(), xv.max()], 
+                      origin='lower', aspect='auto' )
     ax[0].set_xlabel('t')
     ax[0].set_ylabel('x')
 
@@ -219,9 +260,70 @@ def plotter(x_, u_, name):
     ax[1].set_ylabel('u')
     def animate(t):
         line.set_ydata(u_[:, t])
-        text.set_text('t=%d'%t)
+        text.set_text('t=%.2f' % x_[:, 1][t])
         return line, text
     
-    ani = animation.FuncAnimation(fig, animate, frames=200, interval=50)
+    ani = animation.FuncAnimation(fig, animate, frames=u_.shape[1], interval=50)
     plt.tight_layout()
     ani.save('./Burgers_' + name + '.gif', writer='imagemagick', fps=60)
+
+
+
+def sanityCheckData():
+    nu = 0.01         # constant in the diff. equation
+    N_u = 1000                 # number of data points in the boundaries
+    N_f = 10000               # number of collocation points
+
+    SEED = 0
+    random_state = np.random.RandomState(SEED)
+    x_ = np.linspace(-1, 1, 200)
+    t_ = np.linspace(0, 1, 100)
+    xx, tt = np.meshgrid(x_, t_)
+    x_domain = np.stack((xx.flatten(), tt.flatten()), axis=1) 
+
+    x_upper = np.ones((N_u//4, 1), dtype=float)
+    x_lower = np.ones((N_u//4, 1), dtype=float) * (-1)
+    t_zero = np.zeros((N_u//2, 1), dtype=float)
+
+    t_upper = np.random.rand(N_u//4, 1)
+    t_lower = np.random.rand(N_u//4, 1)
+    x_zero = (-1) + np.random.rand(N_u//2, 1) * (1 - (-1))
+
+    # stack uppers, lowers and zeros:
+    X_upper = np.hstack( (x_upper, t_upper) )
+    X_lower = np.hstack( (x_lower, t_lower) )
+    X_zero = np.hstack( (x_zero, t_zero) )
+
+    # each one of these three arrays haS 2 columns, 
+    # now we stack them vertically, the resulting array will also have 2 
+    # columns and 100 rows:
+    X_u_train = np.vstack( (X_upper, X_lower, X_zero) )
+
+    # shuffle X_u_train:
+    index = np.arange(0, N_u)
+    random_state.shuffle(index)
+    X_u_train = X_u_train[index, :]
+    
+    # make X_f_train:
+    X_f_train = np.zeros((N_f, 2), dtype=float)
+    for row in range(N_f):
+        x = random.uniform(-1, 1)  # x range
+        t = random.uniform( 0, 1)  # t range
+
+        X_f_train[row, 0] = x 
+        X_f_train[row, 1] = t
+
+    # add the boundary points to the collocation points:
+    X_f_train = np.vstack( (X_f_train, X_u_train) )
+
+    # make u_train
+    u_upper =  np.zeros((N_u//4, 1), dtype=float)
+    u_lower =  np.zeros((N_u//4, 1), dtype=float) 
+    u_zero = -np.sin(np.pi * x_zero)  
+
+    # stack them in the same order as X_u_train was stacked:
+    u_train = np.vstack( (u_upper, u_lower, u_zero) )
+
+    # match indices with X_u_train
+    u_train = u_train[index, :]
+    return (X_u_train, X_f_train), u_train, x_domain
