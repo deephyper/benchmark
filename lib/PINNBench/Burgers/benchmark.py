@@ -11,5 +11,5 @@ class PINNBurgersBenchmark(Benchmark):
     version = "0.0.1"
 
     requires = {
-        "bash-install": {"type": "cmd", "cmd": os.path.join(DIR, "../install.sh")}, # not sure what this line should do or I should do to match this line.
+        "py-pip-requirements": {"type": "pip", "name": "-r "+ os.path.join(DIR, "requirements.txt")}, # not sure what this line should do or I should do to match this line.
     }
