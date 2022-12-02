@@ -22,8 +22,7 @@ def ipl_curve(s, alpha, beta, gamma):
 def run(job: RunningJob, optuna_trial=None) -> dict:
 
     # otherwise failure
-    config = job.parameters
-    min_b, max_b = 1, 100
+    min_b, max_b = 1, 1_000
 
     alpha = job.parameters["alpha"]
     beta = job.parameters["beta"]
