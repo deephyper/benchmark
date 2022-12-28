@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 from deephyper.evaluator import profile, RunningJob
@@ -7,17 +9,12 @@ from deephyper.problem import HpProblem
 
 
 problem = HpProblem()
-problem.add_hyperparameter((1e-6, 10, "log-uniform"), "alpha")
-problem.add_hyperparameter((1.0, 10.0), "beta")
-problem.add_hyperparameter((0.1, 0.5), "gamma")
-
-# optimum is at
-# C(s=100, alpha=1e-6, beta=1.0, gamma=0.5) -> 0.100001
+problem.add_hyperparameter((1e-6, 10), "rho_0")
+problem.add_hyperparameter((1.0, 10.0), "rho_1")
 
 
-def ipl_curve(s, alpha, beta, gamma):
-    """Inverse Power-Law Model"""
-    return alpha + beta * s**-gamma
+def f_loglin2(b, rho):
+    return np.power(b, rho[1]) * np.exp(rho[0])
 
 
 @profile
@@ -26,20 +23,17 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     print(f"{job.id=}")
 
     # otherwise failure
-    min_b, max_b = 1, 1000
+    min_b, max_b = 1, 100
 
-    alpha = job.parameters["alpha"]
-    beta = job.parameters["beta"]
-    gamma = job.parameters["gamma"]
+    rho = [job.parameters["rho_0"], job.parameters["rho_1"]]
+    f = lambda b: f_loglin2(b, rho)
 
-    objective_test = -ipl_curve(max_b, alpha, beta, gamma)
+    objective_test = f(max_b)
 
     if optuna_trial:
 
         for budget_i in range(min_b, max_b + 1):
-            objective_i = -ipl_curve(
-                budget_i, alpha, beta, gamma
-            )  # maximisation in deephyper
+            objective_i = f(budget_i)
             optuna_trial.report(objective_i, step=budget_i)
             if optuna_trial.should_prune():
                 break
@@ -56,9 +50,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     else:
 
         for budget_i in range(min_b, max_b + 1):
-            objective_i = -ipl_curve(
-                budget_i, alpha, beta, gamma
-            )  # maximisation in deephyper
+            objective_i = f(budget_i)
             job.record(budget_i, objective_i)
             if job.stopped():
                 break
