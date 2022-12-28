@@ -9,8 +9,8 @@ from deephyper.problem import HpProblem
 
 
 problem = HpProblem()
-problem.add_hyperparameter((1e-6, 10), "rho_0")
-problem.add_hyperparameter((1.0, 10.0), "rho_1")
+problem.add_hyperparameter((0.0, 1.0), "rho_0")
+problem.add_hyperparameter((0.0, 1.0), "rho_1")
 
 
 def f_loglin2(b, rho):
