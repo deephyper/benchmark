@@ -21,11 +21,16 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     # otherwise failure
     config = job.parameters
 
-    from hpobench.benchmarks.nas.tabular_benchmarks import ParkinsonsTelemonitoringBenchmark
+    from hpobench.benchmarks.nas.tabular_benchmarks import (
+        ParkinsonsTelemonitoringBenchmark,
+    )
 
     b = ParkinsonsTelemonitoringBenchmark(data_path=data_path)
     budget_space = b.get_fidelity_space().get("budget")
     min_b, max_b = budget_space.lower, budget_space.upper
+
+    eval_test = b.objective_function_test(config, fidelity={"budget": max_b})
+    objective_test = -eval_test["function_value"]
 
     if optuna_trial:
 
@@ -36,10 +41,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             if optuna_trial.should_prune():
                 break
 
-        return {
-            "objective": objective_i,
-            "metadata": {"budget": budget_i, "stopped": budget_i < max_b},
-        }
+        objective = objective_i
 
     else:
 
@@ -50,10 +52,16 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             if job.stopped():
                 break
 
-        return {
-            "objective": job.observations,
-            "metadata": {"budget": budget_i, "stopped": budget_i < max_b},
-        }
+        objective = job.observations
+
+    return {
+        "objective": objective,
+        "metadata": {
+            "budget": budget_i,
+            "stopped": budget_i < max_b,
+            "objective_test": objective_test,
+        },
+    }
 
 
 if __name__ == "__main__":
