@@ -10,7 +10,7 @@ from deephyper.problem import HpProblem
 
 problem = HpProblem()
 problem.add_hyperparameter((0.0, 1.0), "rho_0")
-problem.add_hyperparameter((0.0, 1.0), "rho_1")
+problem.add_hyperparameter((0.0, 1.0/25.0), "rho_1")
 
 
 def f_loglin2(b, rho):
@@ -19,8 +19,6 @@ def f_loglin2(b, rho):
 
 @profile
 def run(job: RunningJob, optuna_trial=None) -> dict:
-
-    print(f"{job.id=}")
 
     # otherwise failure
     min_b, max_b = 1, 100
