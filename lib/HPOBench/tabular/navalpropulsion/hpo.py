@@ -30,6 +30,8 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     eval_test = b.objective_function_test(config, fidelity={"budget": max_b})
     objective_test = -eval_test["function_value"]
 
+    other_metadata = {}
+
     if optuna_trial:
 
         for budget_i in range(min_b, max_b + 1):
@@ -38,7 +40,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             optuna_trial.report(objective_i, step=budget_i)
             if optuna_trial.should_prune():
                 break
-        
+
         objective = objective_i
 
     else:
@@ -50,15 +52,20 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             if job.stopped():
                 break
 
-        objective = job.observations
+        objective = job.objective
 
+        if hasattr(job, "stopper") and hasattr(job.stopper, "infos_stopped"):
+            other_metadata["infos_stopped"] = job.stopper.infos_stopped
+
+    metadata = {
+        "budget": budget_i,
+        "stopped": budget_i < max_b,
+        "objective_test": objective_test,
+    }
+    metadata.update(other_metadata)
     return {
         "objective": objective,
-        "metadata": {
-            "budget": budget_i,
-            "stopped": budget_i < max_b,
-            "objective_test": objective_test,
-        },
+        "metadata": metadata,
     }
 
 
