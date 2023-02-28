@@ -32,6 +32,9 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     eval_test = b.objective_function_test(config, fidelity={"budget": max_b})
     objective_test = -eval_test["function_value"]
 
+    eval_val = b.objective_function(config, fidelity={"budget": max_b})
+    objective_val = -eval_val["function_value"]
+
     other_metadata = {}
 
     if optuna_trial:
@@ -63,6 +66,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
         "budget": budget_i,
         "stopped": budget_i < max_b,
         "objective_test": objective_test,
+        "objective_val": objective_val,
     }
     metadata.update(other_metadata)
     return {

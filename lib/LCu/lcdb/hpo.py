@@ -23,10 +23,10 @@ all_algorithms = [
     "sklearn.linear_model.RidgeClassifier",
     "sklearn.linear_model.SGDClassifier",
     "sklearn.neural_network.MLPClassifier",
-    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis",
-    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis",
+    # "sklearn.discriminant_analysis.LinearDiscriminantAnalysis",
+    # "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis",
     "sklearn.naive_bayes.BernoulliNB",
-    "sklearn.naive_bayes.MultinomialNB",
+    # "sklearn.naive_bayes.MultinomialNB", # often missing for large datasets
     "sklearn.neighbors.KNeighborsClassifier",
     "sklearn.ensemble.ExtraTreesClassifier",
     "sklearn.ensemble.RandomForestClassifier",
@@ -61,8 +61,25 @@ def run(job: RunningJob, optuna_trial=None, task_id=3) -> dict:
     anchors, _, scores_valid, _ = curve
     _, times = lcdb.get_train_times(task_id, model)
 
-    scores_valid = np.asarray(scores_valid).mean(axis=1)
-    times = np.asarray(times).mean(axis=1)
+    # scores_valid = [list(v) for v in scores_valid]
+    # times = [list(t) for t in times]
+
+    anchors = np.array(anchors).tolist()
+    # print(model, type(scores_valid), type(scores_valid[0]), type(scores_valid[0][0]))
+    # scores_valid = np.array(np.array(scores_valid).tolist())
+    # times = np.array(np.array(times).tolist())
+
+    # print("->", np.ndim(scores_valid))
+    # print("->", scores_valid)
+    # print("->", np.shape(scores_valid))
+
+    # if np.ndim(scores_valid) == 2:
+    # scores_valid = np.mean(scores_valid, axis=1)
+    scores_valid = np.array([v[0] for v in scores_valid])
+    times = np.array([t[0] for t in times])
+
+    scores_valid = scores_valid.tolist()
+    times = times.tolist()
 
     cum_time = 0
 
