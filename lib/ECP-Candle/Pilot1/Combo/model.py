@@ -41,61 +41,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 logger = logging.getLogger(__name__)
 
-import optuna
-
 np.set_printoptions(precision=4)
 tf.compat.v1.disable_eager_execution()
-
-class TFKerasPruningCallback(tf.keras.callbacks.Callback):
-    """tf.keras callback to prune unpromising trials.
-
-    This callback is intend to be compatible for TensorFlow v1 and v2,
-    but only tested with TensorFlow v2.
-
-    See `the example <https://github.com/optuna/optuna-examples/blob/main/
-    tfkeras/tfkeras_integration.py>`__
-    if you want to add a pruning callback which observes the validation accuracy.
-
-    Args:
-        trial:
-            A :class:`~optuna.trial.Trial` corresponding to the current evaluation of the
-            objective function.
-        monitor:
-            An evaluation metric for pruning, e.g., ``val_loss`` or ``val_acc``.
-    """
-
-    def __init__(self, trial: optuna.trial.Trial, monitor: str) -> None:
-
-        super().__init__()
-
-        self._trial = trial
-        self._monitor = monitor
-        self.pruned = False
-        self.step = None
-
-    def on_epoch_end(self, epoch: int, logs=None) -> None:
-
-        logs = logs or {}
-        current_score = logs.get(self._monitor)
-
-        if current_score is None:
-            message = (
-                "The metric '{}' is not in the evaluation logs for pruning. "
-                "Please make sure you set the correct metric name.".format(
-                    self._monitor
-                )
-            )
-            warnings.warn(message)
-            return
-
-        # Report current score and epoch to Optuna's trial.
-        self.step = epoch+1
-        self._trial.report(float(current_score), step=self.step)
-
-        # Prune trial if needed
-        if self._trial.should_prune():
-            self.model.stop_training = True
-            self.pruned = True
 
 
 def verify_path(path):
@@ -352,7 +299,11 @@ class ComboDataLoader(object):
         self.n_valid = int(self.total * valid_split)
         self.n_test = int(self.total * test_split)
         self.n_train = self.total - self.n_valid - self.n_test
-        logger.info("Rows in train: {}, valid: {}, test: {}".format(self.n_train, self.n_valid, self.n_test))
+        logger.info(
+            "Rows in train: {}, valid: {}, test: {}".format(
+                self.n_train, self.n_valid, self.n_test
+            )
+        )
 
         self.cell_df_dict = {
             "expression": "df_cell_expr",
@@ -452,8 +403,10 @@ class ComboDataLoader(object):
 
     def load_data(self):
         train_index = range(self.n_train)
-        valid_index = range(self.n_train, self.n_train+self.n_valid)
-        test_index = range(self.n_train+self.n_valid, self.n_train+self.n_valid+self.n_test)
+        valid_index = range(self.n_train, self.n_train + self.n_valid)
+        test_index = range(
+            self.n_train + self.n_valid, self.n_train + self.n_valid + self.n_test
+        )
         return self.load_data_by_index(train_index, valid_index, test_index)
 
 
@@ -650,7 +603,7 @@ def yaml_load(path):
     return yaml_data
 
 
-def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
+def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
 
     # Default Config from original Benchmark
     params = initialize_parameters()
@@ -662,8 +615,6 @@ def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
     # Ingest input configuration
     if config:
         params.update(config)
-
-    use_optuna = not(optuna_trial is None)
 
     args = candle.ArgumentStruct(**params)
     seed = args.rng_seed
@@ -730,33 +681,26 @@ def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
     if args.warmup_lr:
         callbacks.append(warmup_lr)
 
-    # Optuna
-    if use_optuna:
-        pruning_cb = TFKerasPruningCallback(optuna_trial, monitor="val_r2")
-        callbacks.append(pruning_cb)
+    if stopper_callback:
+        callbacks.append(stopper_callback)
 
-    if mode == "valid":
-        x_train_list, y_train, x_valid_list, y_valid, _, _, _, _, _ = loader.load_data()
-        training_data = (x_train_list, y_train)
-        validation_data = (x_valid_list, y_valid)
-    else:
-        (
-            x_train_list,
-            y_train,
-            x_valid_list,
-            y_valid,
-            x_test_list,
-            y_test,
-            _,
-            _,
-            _,
-        ) = loader.load_data()
-        training_data = (x_train_list, y_train)
-        validation_data = (x_valid_list, y_valid)
+    (
+        x_train_list,
+        y_train,
+        x_valid_list,
+        y_valid,
+        x_test_list,
+        y_test,
+        _,
+        _,
+        _,
+    ) = loader.load_data()
+    training_data = (x_train_list, y_train)
+    validation_data = (x_valid_list, y_valid)
 
     num_parameters = model.count_params()
 
-    model.fit(
+    history = model.fit(
         *training_data,
         batch_size=args.batch_size,
         shuffle=args.shuffle,
@@ -764,36 +708,30 @@ def run_pipeline(config: dict = None, mode="valid", optuna_trial=None):
         validation_data=validation_data,
         callbacks=callbacks,
         verbose=args.verbose,
-    )
+    ).history
 
-    if mode == "valid":
-        y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
-        scores = evaluate_prediction(y_valid, y_valid_pred)
-    else:
-        y_train_pred = model.predict(x_train_list, batch_size=args.batch_size).flatten()
-        scores_train = evaluate_prediction(y_train, y_train_pred)
-        y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
-        scores = evaluate_prediction(y_valid, y_valid_pred)
-        y_test_pred = model.predict(x_test_list, batch_size=args.batch_size).flatten()
-        scores_test = evaluate_prediction(y_test, y_test_pred)
+    y_train_pred = model.predict(x_train_list, batch_size=args.batch_size).flatten()
+    scores_train = evaluate_prediction(y_train, y_train_pred)
+    y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
+    scores_valid = evaluate_prediction(y_valid, y_valid_pred)
+    y_test_pred = model.predict(x_test_list, batch_size=args.batch_size).flatten()
+    scores_test = evaluate_prediction(y_test, y_test_pred)
 
-        if args.verbose:
-            log_evaluation(scores_train, f"Computing scores for Train Data")
-            log_evaluation(scores, f"Computing scores for Valid Data")
-            log_evaluation(scores_test , f"Computing scores for Test  Data")
+    all_scores = {}
+    all_scores.update({f"train_{k}": float(v) for k, v in scores_train.items()})
+    all_scores.update({f"valid_{k}": float(v) for k, v in scores_valid.items()})
+    all_scores.update({f"test_{k}": float(v) for k, v in scores_test.items()})
 
     if K.backend() == "tensorflow":
         K.clear_session()
 
-    objective = scores["r2"]  # validation R2
+    objective = all_scores["valid_r2"]  # validation R2
     objective = max(-1, objective)
 
-    if use_optuna:
-        return {
-            "objective": objective,
-            "budget": pruning_cb.step,
-            "pruned": pruning_cb.pruned,
-            "num_parameters": num_parameters,
-        }
-    else:
-        return {"objective": objective, "num_parameters": num_parameters}
+    metadata = {
+        "num_parameters": num_parameters,
+        "budget": len(history["loss"]),
+        "stopped": len(history["loss"]) < args.epochs,
+    }
+    metadata.update(all_scores)
+    return {"objective": objective, "metadata": metadata}

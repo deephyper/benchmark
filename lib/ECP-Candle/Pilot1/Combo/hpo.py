@@ -2,6 +2,7 @@ import traceback
 
 from deephyper.evaluator import profile
 from deephyper.problem import HpProblem
+from deephyper.stopper.integration import TFKerasStopperCallback
 
 from .model import run_pipeline
 
@@ -97,34 +98,40 @@ def remap_hyperparameters(config: dict):
 
 
 @profile
-def run(config, optuna_trial=None):
-    
-    params = {
-        "epochs": 50,
-        "timeout": 60 * 30, # 30 minutes per model
-        "verbose": False
-    }
-    use_optuna = not(optuna_trial is None)
+def run(job):
 
+    config = job.parameters
+
+    params = {
+        "epochs": 100,
+        "timeout": 60 * 30,  # 30 minutes per model
+        "verbose": False,
+    }
     if len(config) > 0:
         remap_hyperparameters(config)
         params.update(config)
 
+    stopper_callback = TFKerasStopperCallback(
+        job, monitor="val_r2", mode="max", units="epochs"
+    )
+
     try:
-        score = run_pipeline(params, mode="valid", optuna_trial=optuna_trial)
+        score = run_pipeline(params, mode="valid", stopper_callback=stopper_callback)
     except Exception as e:
         print(traceback.format_exc())
-        score = {"objective": -1, "num_parameters": 0}
-        if use_optuna:
-            score.update({"budget": 0, "pruned": False})
+        score = {"objective": "F"}
 
     return score
 
 
 def evaluate(config):
     """Evaluate an hyperparameter configuration on training/validation and testing data."""
-    
-    params = {"epochs": 100, "timeout": 60 * 60, "verbose": True}  # 60 minutes per model
+
+    params = {
+        "epochs": 100,
+        "timeout": 60 * 60,
+        "verbose": True,
+    }  # 60 minutes per model
     remap_hyperparameters(config)
     params.update(config)
     run_pipeline(params, mode="test")
