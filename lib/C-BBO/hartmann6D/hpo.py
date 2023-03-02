@@ -5,20 +5,35 @@ import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
 
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
-domain = (-32.768, 32.768)
+nb_dim = 6
+domain = (0.0, 1.0)
 problem = HpProblem()
 for i in range(nb_dim):
     problem.add_hyperparameter(domain, f"x{i}")
 
 
-def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    d = len(x)
-    s1 = np.sum(x**2)
-    s2 = np.sum(np.cos(c * x))
-    term1 = -a * np.exp(-b * np.sqrt(s1 / d))
-    term2 = -np.exp(s2 / d)
-    y = term1 + term2 + a + np.exp(1)
+def hartmann6D(x):
+    alpha = np.array([1.0, 1.2, 3.0, 3.2])
+    A = np.array(
+        [
+            [10, 3, 17, 3.5, 1.7, 8],
+            [0.05, 10, 17, 0.1, 8, 14],
+            [3, 3.5, 1.7, 10, 17, 8],
+            [17, 8, 0.05, 10, 0.1, 14],
+        ]
+    )
+    P = 1e-4 * np.array(
+        [
+            [1312, 1696, 5569, 124, 8283, 5886],
+            [2329, 4135, 8307, 3736, 1004, 9991],
+            [2348, 1451, 3522, 2883, 3047, 6650],
+            [4047, 8828, 8732, 5743, 1091, 381],
+        ]
+    )
+    X = np.array([x for _ in range(4)])
+    inner = np.sum(np.multiply(A, np.square(X - P)), axis=1)
+    outer = np.sum(alpha * np.exp(-inner))
+    y = -(2.58 + outer) / 1.94
     return y
 
 
@@ -35,7 +50,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
 
-    return -ackley(x)
+    return -hartmann6D(x)
 
 
 if __name__ == "__main__":

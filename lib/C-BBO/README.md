@@ -5,5 +5,7 @@ Set of continuous function benchmark. The `DEEPHYPER_BENCHMARK_NDIMS` environmen
 | Function Name | Number of Dimensions |
 | ------------- | -------------------- |
 | ackley        | $\infty$             |
-|               |                      |
-|               |                      |
+| griewank      | $\infty$             |
+| hartmann6D    | 6                    |
+| levy          | $\infty$             |
+| schwefel      | $\infty$             |
