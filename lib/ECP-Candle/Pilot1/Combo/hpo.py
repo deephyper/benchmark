@@ -112,7 +112,7 @@ def run(job):
         params.update(config)
 
     stopper_callback = TFKerasStopperCallback(
-        job, monitor="val_r2", mode="max", units="epochs"
+        job, monitor="val_r2", mode="max" 
     )
 
     try:
