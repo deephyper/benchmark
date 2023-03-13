@@ -11,6 +11,8 @@ cd HPOBench/
 # download data
 mkdir data
 cd data
+
+# data for tabular benchmarks
 wget http://ml4aad.org/wp-content/uploads/2019/01/fcnet_tabular_benchmarks.tar.gz
 tar xf fcnet_tabular_benchmarks.tar.gz
 
