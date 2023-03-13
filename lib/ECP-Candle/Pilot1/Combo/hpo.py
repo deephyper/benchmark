@@ -123,7 +123,7 @@ def run(job):
         score = {"objective": "F"}
         keys = "m:num_parameters,m:budget,m:stopped,m:train_mse,m:train_mae,m:train_r2,m:train_corr,m:valid_mse,m:valid_mae,m:valid_r2,m:valid_corr,m:test_mse,m:test_mae,m:test_r2,m:test_corr"
         metadata = {k.strip("m:"): None for k in keys.split(",")}
-        score["metadata"] = keys
+        score["metadata"] = metadata
 
     return score
 
