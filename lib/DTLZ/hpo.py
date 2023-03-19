@@ -13,9 +13,9 @@ dtlz_prob_name = f"dtlz{dtlz_prob}"
 dtlz_class_ptr = getattr(dtlz, dtlz_prob_name)
 
 # Read problem dims and definition (or read from ENV)
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
-nb_obj = os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2)
-soln_offset = os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6)
+nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
+nb_obj = int(os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2))
+soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6))
 domain = (0., 1.)
 
 # Create problem
