@@ -1,20 +1,26 @@
 import os
+from importlib import import_module
 
 import time
 import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
-from dtlz import dtlz2 as DTLZ
+import dtlz
 
-# Set problem dims (or read from ENV)
+# Read DTLZ problem name and acquire pointer
+dtlz_prob = os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_PROB", 2)
+dtlz_prob_name = f"dtlz{dtlz_prob}"
+dtlz_class_ptr = getattr(dtlz, dtlz_prob_name)
+
+# Read problem dims and definition (or read from ENV)
 nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
 nb_obj = os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2)
+soln_offset = os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6)
 domain = (0., 1.)
-soln_offset = 0.6
 
-# Set up problem
+# Create problem
 problem = HpProblem()
-dtlz_obj = DTLZ(nb_dim, nb_obj, offset=soln_offset)
+dtlz_obj = dtlz_class_ptr(nb_dim, nb_obj, offset=soln_offset)
 for i in range(nb_dim):
     problem.add_hyperparameter(domain, f"x{i}")
 
