@@ -4,23 +4,19 @@ import time
 import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
-from .dtlz import dtlz1, dtlz2, dtlz3, dtlz4, dtlz5, dtlz6, dtlz7
+from dtlz import dtlz2 as DTLZ
 
+# Set problem dims (or read from ENV)
 nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
-domain = (-32.768, 32.768)
+nb_obj = os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2)
+domain = (0., 1.)
+soln_offset = 0.6
+
+# Set up problem
 problem = HpProblem()
+dtlz_obj = DTLZ(nb_dim, nb_obj, offset=soln_offset)
 for i in range(nb_dim):
     problem.add_hyperparameter(domain, f"x{i}")
-
-
-def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    d = len(x)
-    s1 = np.sum(x**2)
-    s2 = np.sum(np.cos(c * x))
-    term1 = -a * np.exp(-b * np.sqrt(s1 / d))
-    term2 = -np.exp(s2 / d)
-    y = term1 + term2 + a + np.exp(1)
-    return y
 
 
 @profile
@@ -35,8 +31,9 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
 
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
+    ff = [fi for fi in dtlz_obj(x)]
 
-    return -ackley(x)
+    return ff
 
 
 if __name__ == "__main__":
