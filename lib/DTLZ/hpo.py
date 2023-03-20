@@ -5,7 +5,7 @@ import time
 import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
-import dtlz
+from . import model as dtlz
 
 # Read DTLZ problem name and acquire pointer
 dtlz_prob = os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_PROB", 2)
