@@ -66,4 +66,24 @@ from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | PINNBench  | Physics Informed Neural Networks Benchmark.                                  |                                              |                   |                 |                |                     |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
-|            |                                                                              |                                              |                   |                 |                |                     |
+| DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
+|                |                                                                              |                                              |                   |                 |                |                     |
+      
+      
+      
+      
+      
+      
+      
+  
+      
+      
+      
+      
+      
+      
+  
+      
+      
+      
+      
