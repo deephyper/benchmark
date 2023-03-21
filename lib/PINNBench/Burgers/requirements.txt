@@ -1,4 +1,4 @@
-deephyper==0.5.0
+deephyper>=0.5.0
 matplotlib==3.4.2
 numpy==1.23.4
 phiflow==2.2.7

@@ -13,5 +13,5 @@ class PINNBurgersBenchmark(Benchmark):
         "py-pip-requirements": {
             "type": "pip",
             "name": "-r " + os.path.join(DIR, "requirements.txt"),
-        },  # not sure what this line should do or I should do to match this line.
+        }, 
     }

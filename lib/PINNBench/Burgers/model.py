@@ -246,11 +246,10 @@ class BurgerSupervisor:
 
         grads = t.gradient(tot_loss, self.net.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.net.trainable_weights))
-        obj = loss_u.numpy() + loss_f.numpy()
+        train_loss = loss_u.numpy() + loss_f.numpy()
         val_pred = self.net(x_val[:, 0], x_val[:, 1])
         val_u_loss = self.loss(y_val, val_pred).numpy()
-        # print("Epoch %d, training loss: (%.4f, %.4f), obj loss %.4f" % (i+1, loss_u.numpy(), loss_f.numpy(), val_loss))
-        return val_u_loss  # return the objective.
+        return train_loss, val_u_loss 
 
     def train(self, train, val):
         x_u_train = tf.cast(train["x_u"], tf.float32)

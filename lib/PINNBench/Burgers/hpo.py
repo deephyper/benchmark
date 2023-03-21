@@ -2,7 +2,7 @@ import numpy as np
 
 from deephyper.problem import HpProblem
 from deephyper.search.hps import CBO
-from .model import get_data, PINN, BurgerSupervisor, plotter
+from model import get_data, PINN, BurgerSupervisor, plotter
 from deephyper.stopper import LCModelStopper
 from deephyper.evaluator import profile, RunningJob
 
@@ -20,7 +20,7 @@ def run(job: RunningJob) -> dict:
     num_layers = config["num_layers"]
     hidden_dim = config["hidden_dim"]
     output_dim = 1
-    epochs = 1  #
+    epochs = 100  
     lr = config["lr"]
     alpha = config["alpha"]
     activation = config["activation"]
@@ -33,15 +33,22 @@ def run(job: RunningJob) -> dict:
     sup = BurgerSupervisor(nu, net, epochs, lr, alpha)
 
     for budget_i in range(min_b, max_b + 1):
-        eval = sup.step(train, val)
-        print("val mse", eval)
+        train_loss, eval = sup.step(train, val)
         objective_i = -eval  # maximizing in deephyper
         job.record(budget_i, objective_i)
         if job.stopped():
             break
     objective = job.objective
 
+    # calculate test scores
+    pred_test = sup.net(test['x'][:,0], test['x'][:,1])
+    test_loss = np.mean((test['y'] - pred_test)**2)
+
     metadata = {
+        "num_parameters": sup.net.count_params(),
+        "train_loss": train_loss,
+        "val_loss": eval,
+        "test_loss": test_loss,
         "budget": budget_i,
         "stopped": budget_i < max_b,
         "infos_stopped": job.stopper.infos_stopped
@@ -85,8 +92,7 @@ def evaluate(config):
         act_fn=activation,
     )
     sup = BurgerSupervisor(nu=nu, net=net, epochs=epochs, lr=lr, alpha=alpha)
-    val_f_loss = sup.train(train, test)  # evaluate the best config on the testing set.
-
+    val_f_loss = sup.train(train, test)  
 
 if __name__ == "__main__":
     import time
