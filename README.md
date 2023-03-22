@@ -55,3 +55,15 @@ load("Benchmark-101")
 
 from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 ```
+
+## List of Benchmarks
+
+| Name       | Description                                                                  | Variable(s) Type                             | Objective(s) Type | Multi-Objective | Multi-Fidelity | Evaluation Duration |
+| ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------- | --------------- | -------------- | ------------------- |
+| C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}$                                 | $\mathbb{R}$      | ❌              | ❌             | ms                  |
+| ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ❌             | min                 |
+| HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ✅             | ms to min           |
+| LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  |                                              |                   |                 |                |                     |
+| Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
+|            |                                                                              |                                              |                   |                 |                |                     |

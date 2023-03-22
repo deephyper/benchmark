@@ -59,6 +59,8 @@ def load(name):
 
 class Benchmark:
 
+    requires = {}
+
     def __init__(self):
         self.name = None
         self.cwd = None
