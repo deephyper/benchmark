@@ -14,9 +14,8 @@ os.environ["DEEPHYPER_BENCHMARK_NOBJS"] = "3" # 2 objs
 os.environ["DEEPHYPER_BENCHMARK_DTLZ_PROB"] = "2" # DTLZ2 problem
 os.environ["DEEPHYPER_BENCHMARK_DTLZ_OFFSET"] = "0.6" # [x_o, .., x_d]*=0.6
 
-# Load DTLZ benchmark suite
+# Load DTLZ benchmark suite, nothing to install
 import deephyper_benchmark as dhb
-# dhb.install("DTLZ")
 dhb.load("DTLZ")
 
 
