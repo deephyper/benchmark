@@ -1,26 +1,28 @@
 import os
+from importlib import import_module
+
 import time
-
 import numpy as np
-
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
+from . import model as dtlz
 
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
-domain = (-32.768, 32.768)
+# Read DTLZ problem name and acquire pointer
+dtlz_prob = os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_PROB", 2)
+dtlz_prob_name = f"dtlz{dtlz_prob}"
+dtlz_class_ptr = getattr(dtlz, dtlz_prob_name)
+
+# Read problem dims and definition (or read from ENV)
+nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
+nb_obj = int(os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2))
+soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6))
+domain = (0., 1.)
+
+# Create problem
 problem = HpProblem()
+dtlz_obj = dtlz_class_ptr(nb_dim, nb_obj, offset=soln_offset)
 for i in range(nb_dim):
     problem.add_hyperparameter(domain, f"x{i}")
-
-
-def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    d = len(x)
-    s1 = np.sum(x**2)
-    s2 = np.sum(np.cos(c * x))
-    term1 = -a * np.exp(-b * np.sqrt(s1 / d))
-    term2 = -np.exp(s2 / d)
-    y = term1 + term2 + a + np.exp(1)
-    return y
 
 
 @profile
@@ -35,8 +37,9 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
 
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
+    ff = [fi for fi in dtlz_obj(x)]
 
-    return -ackley(x)
+    return ff
 
 
 if __name__ == "__main__":
