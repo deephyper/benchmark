@@ -118,7 +118,7 @@ def split_data(x_, t_, u, show_points=False):
     # prepare testing data
     xx, tt = np.meshgrid(x_, t_)
     input_domain = np.stack([xx.flatten(), tt.flatten()], axis=1)
-    y_test = u.flatten()
+    y_test = u.flatten().reshape(-1, 1)
 
     train_data = {"x_u": x_u_train, "y_u": y_u_train, "x_f": x_f_train}
     val_data = {"x": x_f_train, "y": u_col}

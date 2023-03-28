@@ -42,3 +42,17 @@ for budget_i in range(min_b, max_b + 1):
         if job.stopped():
             break
 ```
+## Defualt configuration and results
+The default configuration of the PINN.
+
+| | |
+|:--|:--|
+|`num_layers`| 5 |
+|`lr` | 0.01|
+| `hidden_dim`| 5|
+|`alpha`| 5 |
+|`activation`| `tanh`|
+
+```
+result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.47377, 'timestamp_end': 1680036380.2708638, 'num_parameters': 171, 'train_loss': 0.06834503, 'val_loss': 0.06480624, 'test_loss': 0.066540696, 'budget': 1000, 'stopped': False, 'infos_stopped': None}}
+```
