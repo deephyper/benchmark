@@ -2,9 +2,13 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Introduction](#introduction)
-* [Organization of the Repository](#organization-of-the-repository)
+- [DeepHyper Benchmark](#deephyper-benchmark)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Organization of the Repository](#organization-of-the-repository)
+  - [Installation](#installation)
+  - [Defining a Benchmark](#defining-a-benchmark)
+  - [List of Benchmarks](#list-of-benchmarks)
 
 ## Introduction
 
@@ -64,7 +68,7 @@ from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 | ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ❌             | min                 |
 | HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
-| PINNBench  | Physics Informed Neural Networks Benchmark.                                  |                                              |                   |                 |                |                     |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}^2$                               | $\mathbb{R}$      | ❌              | ✅              | ms                    |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
 | DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
 |                |                                                                              |                                              |                   |                 |                |                     |
