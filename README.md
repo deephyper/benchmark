@@ -60,6 +60,20 @@ load("Benchmark-101")
 from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 ```
 
+## Standard Metadata
+
+Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):
+
+- `num_parameters`: integer value of the number of trainable parameters of the neural network.
+- `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
+- `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
+- `train_X`:  scalar value of the training metrics (replace `X` by the metric name, 1 key per metric).
+- `valid_X`: scalar value of the validation metrics (replace `X` by the metric name, 1 key per metric).
+- `test_X`: scalar value of the testing metrics (replace `X` by the metric name, 1 key per metric).
+
+
+The `@profile` decorator should be used on all `run`-functions to collect the `timestamp_start` and `timestamp_end` metadata.
+
 ## List of Benchmarks
 
 | Name       | Description                                                                  | Variable(s) Type                             | Objective(s) Type | Multi-Objective | Multi-Fidelity | Evaluation Duration |
@@ -68,10 +82,11 @@ from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 | ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ❌             | min                 |
 | HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
-| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}^2$                               | $\mathbb{R}$      | ❌              | ✅              | ms                    |
+| LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}^2$                               | $\mathbb{R}$      | ❌              | ✅             | ms                  |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
 | DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
-|                |                                                                              |                                              |                   |                 |                |                     |
+|                |                                                                          |                                              |                   |                 |                |                     |
       
       
       
