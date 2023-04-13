@@ -2,7 +2,7 @@ import numpy as np
 
 from deephyper.problem import HpProblem
 from deephyper.search.hps import CBO
-from model import get_data, PINN, BurgerSupervisor, plotter
+from .model import get_data, PINN, BurgerSupervisor, plotter
 from deephyper.stopper import LCModelStopper
 from deephyper.evaluator import profile, RunningJob
 
