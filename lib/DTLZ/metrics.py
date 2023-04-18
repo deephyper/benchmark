@@ -41,7 +41,10 @@ class PerformanceEvaluator:
 
         """
 
-        filtered_pts = pts.copy()
+        if np.any(pts < 0):
+            filtered_pts = -pts.copy()
+        else:
+            filtered_pts = pts.copy()
         nadir = self.nadirPt()
         for i in range(pts.shape[0]):
             if np.any(filtered_pts[i, :] > nadir):
@@ -74,7 +77,10 @@ class PerformanceEvaluator:
 
         """
 
-        pareto_pts = pareto_front(pts)
+        if np.any(pts < 0):
+            pareto_pts = pareto_front(-pts)
+        else:
+            pareto_pts = pareto_front(pts)
         return sum([all(fi <= self.nadirPt()) for fi in pareto_pts])
 
     def rmse(self, pts):
@@ -89,7 +95,10 @@ class PerformanceEvaluator:
 
         """
 
-        pareto_pts = pareto_front(pts)
+        if np.any(pts < 0):
+            pareto_pts = pareto_front(-pts)
+        else:
+            pareto_pts = pareto_front(pts)
         if self.p_num == "1":
             dists = self._dtlz1Dist(pareto_pts)
         elif self.p_num in ["2", "3", "4", "5", "6"]:
