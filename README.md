@@ -60,6 +60,8 @@ load("Benchmark-101")
 from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 ```
 
+All `run`-functions (i.e., function returning the objective(s) to be optimized) should follow the **MAXIMIZATION** standard. If a benchmark needs minimization then the negative of the minimized objective can be returned `return -minimized_objective`.
+
 ## Standard Metadata
 
 Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):
