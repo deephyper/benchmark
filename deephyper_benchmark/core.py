@@ -4,10 +4,21 @@ import logging
 import os
 import sys
 
+# Path of the root directory of the deephyper_benchmark package
 PKG_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Path of the root directory of the library of benchmarks
 BCH_ROOT_DIR = os.path.join(os.path.dirname(PKG_ROOT_DIR), "lib")
 
-def find_benchmark(benchmark_name):
+def find_benchmark(benchmark_name: str):
+    """Load a benchmark class from its string path.
+
+    Args:
+        benchmark_name (str): string path of the benchmark to load.
+    
+    Returns: 
+        Benchmark: the instanciated benchmark class.
+    """
 
     benchmark_path = os.path.join(BCH_ROOT_DIR, benchmark_name)
     sys.path.insert(0, benchmark_path)
@@ -24,40 +35,47 @@ def find_benchmark(benchmark_name):
         except TypeError: pass
     
     if benchmark_class is None:
-        logging.error("cannot find any benchmark")
+        logging.error("Cannot find any benchmark")
         return
     else:
-        logging.info(f"found {attr.__name__}")
+        logging.info(f"Found {attr.__name__}")
     
     benchmark = benchmark_class()
+
+    # Working directory of the benchmark
     benchmark.cwd = benchmark_path
+
+    # Python module name of the benchmark
     benchmark.name = benchmark_name.replace("-","_").replace("/",".").lower()
 
     return benchmark
 
-def install(name):
-    logging.info(f"installing {name}") 
+def install(name: str):
+    """Installing benchmark from string path name. The installation is executed from the root directory of the
+    requested benchmark."""
+
+    logging.info(f"Installing {name}") 
     
     benchmark = find_benchmark(name)
     benchmark.install()
 
-    logging.info(f"installation done")
+    logging.info(f"Installation done")
     
 
-def load(name):
-    logging.info(f"loading {name}")
+def load(name: str):
+    """Loading benchmark from string path name."""
+    logging.info(f"Loading {name}")
 
     benchmark = find_benchmark(name)
     module = benchmark.load()
 
-    logging.info(f"loading done")
+    logging.info(f"Loading done")
 
     return module
 
 
-
-
 class Benchmark:
+    """Class representing a benchmark."""
 
     requires = {}
 
@@ -66,6 +84,7 @@ class Benchmark:
         self.cwd = None
 
     def install(self):
+        """Runs the installation of the benchmark."""
         
         for require_name, require_val in self.requires.items():
             res = 0
@@ -81,10 +100,12 @@ class Benchmark:
                 logging.error("installation failed!")
     
     def load(self):
+        """Loads the benchmark and returns the corresponding Python module."""
+
         for require_name, require_val in self.requires.items():
             if require_val["type"] == "pythonpath":
                 path = require_val["path"]
-                logging.info(f"adding {path} to PYTHONPATH")
+                logging.info(f"Adding {path} to PYTHONPATH")
                 sys.path.insert(0, path)
 
         module_name = f"deephyper_benchmark.lib.{self.name}"
