@@ -1,0 +1,7 @@
+deephyper==0.5.0
+DeepXDE==1.8.2
+numpy==1.24.2
+omegaconf==2.3.0
+packaging==23.0
+pdebench @ file:///Users/yixuan/Documents/AllWorkStuff/DeepHyper/PDEBench
+torch==2.0.0

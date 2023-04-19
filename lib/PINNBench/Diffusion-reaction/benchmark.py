@@ -5,7 +5,7 @@ from deephyper_benchmark import *
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class PINNDiffusionReactionBenchmark(Benchmark):
+class PINNBurgersBenchmark(Benchmark):
 
     version = "0.0.1"
 
