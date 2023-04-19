@@ -62,6 +62,39 @@ from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 
 All `run`-functions (i.e., function returning the objective(s) to be optimized) should follow the **MAXIMIZATION** standard. If a benchmark needs minimization then the negative of the minimized objective can be returned `return -minimized_objective`.
 
+A benchmark inherits from the `Benchmark` class:
+
+```python
+import os
+
+from deephyper_benchmark import *
+
+DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+class Benchmark101(Benchmark):
+
+    version = "0.0.1"
+
+    requires = {
+        "bash-install": {"type": "cmd", "cmd": "cd .. && " + os.path.join(DIR, "../install.sh")},
+    }
+
+```
+
+Finally, when testing a benchmark it can be usefull to activate the logging:
+
+```python
+import logging
+
+logging.basicConfig(
+    # filename="deephyper.log", # Uncomment if you want to create a file with the logs
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(funcName)s - %(message)s",
+    force=True,
+)
+```
+
 ## Standard Metadata
 
 Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):

@@ -10,5 +10,5 @@ class HPOBenchTabularSliceLocalization(Benchmark):
     version = "0.0.1"
 
     requires = {
-        "bash-install": {"type": "cmd", "cmd": os.path.join(DIR, "../install.sh")},
+        "bash-install": {"type": "cmd", "cmd": "cd .. && " + os.path.join(DIR, "../install.sh")},
     }
