@@ -19,7 +19,7 @@ def run(job: RunningJob) -> dict:
         epochs=config["epochs"],
         learning_rate=config["lr"],
         model_update=500,
-        root_path="Users/yixuan/Documents/AllWorkStuff/DeepHyper/PDEBench/pdebench/data/2D_diff-react_NA_NA",
+        root_path="../build/PDEBench-DH/pdebench/data/2D_diff-react_NA_NA",
         flnm="2D_diff-react_NA_NA.h5",
         config=config,
         seed="0000",
