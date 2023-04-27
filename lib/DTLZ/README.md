@@ -83,7 +83,7 @@ To evaluate these two metrics, we use:
  1. RMSE: Let $F_i$ be a point in the solution set returned by a solver,
     and let $Y_i$ be the nearest point to $F_i$ on the true Pareto front,
     for $i=1,\ldots, n$.
-    Then the RMSE is $\sqrt{\sum_{i=1}^n (F_i - Y_i)^2 / n}$.
+    Then the RMSE is $\sqrt{\sum_{i=1,...,n} (F_i - Y_i)^2 / n}$.
  2. Hypervolume dominated: Let $F_i$ be defined as above, and let $R$ be
     a pre-determined reference point such that all $F_i$ dominate $R$.
     Then the hypervolume is given by the volume of the union of all
