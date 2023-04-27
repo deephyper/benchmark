@@ -90,10 +90,12 @@ To evaluate these two metrics, we use:
     hyperboxes $B_i$ whose largest vertex is $F_i$ and smallest vertex
     is $R$. The value (and usefulness) of the hypervolume metric is extremely
     sensitive to the choice of $R$. Therefore, for this problem, we choose
-    $R$ to be the Nadir point for the true Pareto front. *Note that in order
+    $R$ to be the Nadir point for the true Pareto front. **Note that in order
     to use the Nadir point as the reference point, we must throw out every
     solution returned by the solver that is worse than the Nadir point. For
-    extremely difficult problems, this can result in zero hypervolume.*
+    extremely difficult problems, this can result in zero hypervolume if no
+    solutions better than the Nadir point were found. This is most common
+    for DTLZ1, DTLZ3, and DTLZ7.**
 
 For a general problem, the two metrics listed above could be very difficult
 to compute and many researchers will use the hypervolume with an overly
