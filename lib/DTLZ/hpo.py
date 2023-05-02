@@ -37,7 +37,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
 
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
-    ff = [fi for fi in dtlz_obj(x)]
+    ff = [-fi for fi in dtlz_obj(x)]
 
     return ff
 

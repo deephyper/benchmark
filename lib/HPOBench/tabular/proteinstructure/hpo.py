@@ -1,9 +1,13 @@
 import os
+import time
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 from deephyper.evaluator import profile, RunningJob
 from deephyper.problem import HpProblem
+
+simulate_run_time = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME", 0)))
+prop_real_run_time = float(os.environ.get("DEEPHYPER_BENCHMARK_PROP_REAL_RUN_TIME", 1.0))
 
 # hpobench
 from hpobench.benchmarks.nas.tabular_benchmarks import ProteinStructureBenchmark
@@ -39,6 +43,12 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
         for budget_i in range(min_b, max_b + 1):
             eval = b.objective_function(config, fidelity={"budget": budget_i})
+
+            cost_step = eval["cost"] -  consumed_time
+            consumed_time = eval["cost"]
+            if simulate_run_time:
+                time.sleep(cost_step * prop_real_run_time)
+
             objective_i = -eval["function_value"]  # maximizing in deephyper
             optuna_trial.report(objective_i, step=budget_i)
             if optuna_trial.should_prune():
@@ -48,8 +58,15 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     else:
 
+        consumed_time = 0 # the cost here corresponds to time
         for budget_i in range(min_b, max_b + 1):
             eval = b.objective_function(config, fidelity={"budget": budget_i})
+
+            cost_step = eval["cost"] -  consumed_time
+            consumed_time = eval["cost"]
+            if simulate_run_time:
+                time.sleep(cost_step * prop_real_run_time)
+
             objective_i = -eval["function_value"]  # maximizing in deephyper
             job.record(budget_i, objective_i)
             if job.stopped():
