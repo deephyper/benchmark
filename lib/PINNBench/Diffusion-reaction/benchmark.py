@@ -15,6 +15,6 @@ class PINNDiffusionReactionBenchmark(Benchmark):
         },
         "bash-install": {
             "type": "cmd",
-            "cmd": "cd .. && " + os.path.join(DIR, "./install.sh"),
+            "cmd": "cd . &&" + os.path.join(DIR, "./install.sh"),
         },
     }
