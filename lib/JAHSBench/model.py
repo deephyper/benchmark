@@ -60,7 +60,7 @@ class jahs_bench:
             config['TrivialAugment'] = False
         # Evaluate and return
         fx = np.zeros(2)
-        result = self.benchmark(config, nepochs=NEPOCHS)
+        result = self.benchmark(config, nepochs=self.nepochs)
         fx[0] = result[self.nepochs]['valid-acc']
         fx[1] = result[self.nepochs]['latency']
         return fx[0], fx[1]
