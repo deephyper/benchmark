@@ -3,6 +3,8 @@ benchmark suite, implemented as DeepHyper compatible models.
 
 """
 
+import numpy as np
+
 class jahs_bench:
     """ A callable class implementing the JAHS benchmark problems. """
 

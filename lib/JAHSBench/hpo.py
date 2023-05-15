@@ -2,7 +2,8 @@ import time
 import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
-from . import model
+#from . import model
+import model
 
 
 # Create problem
@@ -30,7 +31,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
 
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
-    f1, f2 = jahs_obj(x)
+    f1, f2 = jahs_obj(config)
 
     return f1, -f2
 
