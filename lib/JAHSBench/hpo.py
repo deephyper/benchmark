@@ -2,8 +2,7 @@ import time
 import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
-#from . import model
-import model
+from . import model
 
 
 # Create problem

@@ -4,7 +4,26 @@
 This module contains a DeepHyper wrapper for
  [JAHS-Bench-201](https://github.com/automl/jahs_bench_201).
 
-------------------------------------------------------------------------------
+JAHSBench implements a random forest surrogate model, trained on real-world
+performance data for neural networks trained on three standard benchmark
+problems:
+ - ``cifar10`` (default),
+ - ``colorectal_history``, and
+ - ``fashion_mnist``.
+
+Using these models as surrogates for the true performance, we can use this
+benchmark problem to study the performance of AutoML techniques on joint
+architecture-hyperparameter search tasks at minimal expense.
+
+The models allow us to tune 2 continuous training hyperparameters
+(``LearningRate`` and ``WeightDecay``),
+2 categorical training hyperparameters
+(``Activation`` and ``TrivialAugment``), and
+5 categorical architecture parameters
+(``Op{i}`` for ``i=0, ..., 4``).
+
+The benchmark can be run to tune a single objective (``valid-acc``) or
+two objectives (``valid-acc`` and ``latency``).
 
 For further information, see:
 
@@ -32,45 +51,29 @@ To use the benchmark follow this example set of instructions:
 import deephyper_benchmark as dhb
 dhb.load("JAHSBench")
 
-# Example of running one evaluation of DTLZ problem
+# Example of running one evaluation of JAHSBench
 from deephyper.evaluator import RunningJob
-config = dtlz.hpo.problem.default_configuration # get a default config to test
-res = dtlz.hpo.run(RunningJob(parameters=config))
+config = jahsbench.hpo.problem.default_configuration # get a default config to test
+res = jahsbench.hpo.run(RunningJob(parameters=config))
 
 ```
 
+Note that the first time that this benchmark is called in a new directory,
+the training data must be downloaded and the random forest model must be built.
+This may require a significant amount of time.
+
+After the initial time required to download and build the models, the
+surrogate problem should run relatively quickly.
+
 ## Evaluating Results
 
-Evaluating the performance of a multiobjective solver is nontrivial.
-Typically, one should evaluate on two orthogonal bases:
- 1. Quality of solutions -- What is the (average) error in the solutions
-    returned by the solver?
- 2. Diversity of solutions -- How much of the true Pareto front is covered
-    by these solutions?
+To evaluate the results, the AutoML team recommends using the validation
+error for single-objective runs or the hypervolume metric over both
+validation error and evaluation latency for multiobjective-runs.
+See their
+[Evaluation Protocol](https://automl.github.io/jahs_bench_201/evaluation_protocol)
+for more details.
 
-To evaluate these two metrics, we use:
- 1. RMSE: Let $F_i$ be a point in the solution set returned by a solver,
-    and let $Y_i$ be the nearest point to $F_i$ on the true Pareto front,
-    for $i=1,\ldots, n$.
-    Then the RMSE is $\sqrt{\sum_{i} (F_i - Y_i)^2 / n}$.
- 2. Hypervolume dominated: Let $F_i$ be defined as above, and let $R$ be
-    a pre-determined reference point such that all $F_i$ dominate $R$.
-    Then the hypervolume is given by the volume of the union of all
-    hyperboxes $B_i$ whose largest vertex is $F_i$ and smallest vertex
-    is $R$. The value (and usefulness) of the hypervolume metric is extremely
-    sensitive to the choice of $R$. Therefore, for this problem, we choose
-    $R$ to be the Nadir point for the true Pareto front. **Note that in order
-    to use the Nadir point as the reference point, we must throw out every
-    solution returned by the solver that is worse than the Nadir point. For
-    extremely difficult problems, this can result in zero hypervolume if no
-    solutions better than the Nadir point were found. This is most common
-    for DTLZ1, DTLZ3, and DTLZ7.**
-
-For a general problem, the two metrics listed above could be very difficult
-to compute and many researchers will use the hypervolume with an overly
-pessimistic reference point as a proxy for both quality and diversity.
-However, in general, the hypervolume tends to promote diversity over quality.
-For the DTLZ problems, since the shape of the true Pareto front is known,
-we can calculate each of these metrics, and both the ``rmse(results)`` and
-``hypervolume(results)`` functions are implemented in the ``dtlz.metrics``
-module.
+For multiobjective runs, we recommend a reference point of 
+``(val_acc = 0, latency=10)``, as discussed in 
+[this GitHub issue](https://github.com/automl/jahs_bench_201/issues/19).
