@@ -8,6 +8,7 @@
   - [Organization of the Repository](#organization-of-the-repository)
   - [Installation](#installation)
   - [Defining a Benchmark](#defining-a-benchmark)
+  - [Standard Metadata](#standard-metadata)
   - [List of Benchmarks](#list-of-benchmarks)
 
 ## Introduction
@@ -118,7 +119,7 @@ The `@profile` decorator should be used on all `run`-functions to collect the `t
 | HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
-| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}^2$                               | $\mathbb{R}$      | ❌              | ✅             | ms                  |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$                            | $\mathbb{R}$      | ❌              | ✅             | ms                  |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
 | DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
 |                |                                                                          |                                              |                   |                 |                |                     |
