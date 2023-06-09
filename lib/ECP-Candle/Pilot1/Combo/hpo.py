@@ -99,7 +99,7 @@ def remap_hyperparameters(config: dict):
 
 
 @profile
-def run(job):
+def run(job, optuna_trial=None):
 
     config = copy.deepcopy(job.parameters)
 
@@ -112,9 +112,15 @@ def run(job):
         remap_hyperparameters(config)
         params.update(config)
 
-    stopper_callback = TFKerasStopperCallback(
-        job, monitor="val_r2", mode="max" 
-    )
+    if optuna_trial is None:
+        stopper_callback = TFKerasStopperCallback(
+            job, monitor="val_r2", mode="max" 
+        )
+    else:
+
+        from deephyper_benchmark.integration.optuna import KerasPruningCallback
+
+        stopper_callback = KerasPruningCallback(optuna_trial, "val_r2")
 
     try:
         score = run_pipeline(params, mode="valid", stopper_callback=stopper_callback)
@@ -124,7 +130,7 @@ def run(job):
         keys = "m:num_parameters,m:budget,m:stopped,m:train_mse,m:train_mae,m:train_r2,m:train_corr,m:valid_mse,m:valid_mae,m:valid_r2,m:valid_corr,m:test_mse,m:test_mae,m:test_r2,m:test_corr"
         metadata = {k.strip("m:"): None for k in keys.split(",")}
         score["metadata"] = metadata
-
+        
     return score
 
 
