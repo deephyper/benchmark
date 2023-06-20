@@ -74,5 +74,18 @@ To install the **modified** `PDEBench` and this benchmark
 python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/Diffusion-reaction');"
 ```
 
+Run the hyperparameter search
+```
+import os
+os.environ['DEEPHYPER_BENCHMARK_DATASET'] = '2D_diff-react_NA_NA' # set benchmark dataset
+
+import deephyper_benchmark as dhb
+diff_react = dhb.load("PINNBench/Diffusion-reaction")
+
+from deephyper.evaluator import RunningJob
+config = diff_react.hpo.problem.default_configuration # get a default config to test
+res = diff_react.hpo.run(RunningJob(parameters=config))
+```
+
 ### Configuration
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
