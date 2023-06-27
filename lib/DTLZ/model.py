@@ -376,7 +376,7 @@ class dtlz4(__dtlz_base__):
 
     """
 
-    def __init__(self, num_des, num_obj=3, offset=0.0, alpha=100.0):
+    def __init__(self, num_des, num_obj=3, offset=0.5, alpha=100.0):
         """ Constructor for DTLZ7, with modified default offset.
 
         Args:
