@@ -19,3 +19,29 @@ from tensorflow.keras import backend as K
 import candle
 import combo
 ```
+
+
+## Metadata
+
+The current set of returned metadata is:
+
+- [x] `num_parameters`
+- [x] `num_parameters_train`
+- [x] `budget`
+- [x] `stopped`
+- [x] `train_mse`
+- [x] `train_mae`
+- [x] `train_r2`
+- [x] `train_corr`
+- [x] `valid_mse`
+- [x] `valid_mae`
+- [x] `valid_r2`
+- [x] `valid_corr`
+- [x] `test_mse`
+- [x] `test_mae`
+- [x] `test_r2`
+- [x] `test_corr`
+- [ ] `flops`
+- [ ] `latency`
+- [x] `lc_train_mse`
+- [x] `lc_valid_mse`

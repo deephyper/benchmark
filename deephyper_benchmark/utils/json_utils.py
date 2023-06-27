@@ -23,6 +23,7 @@ def array_to_json(x: np.ndarray) -> str:
 
 
 if __name__ == "__main__":
+    """Example of usage of array_to_json function."""
     x = np.array([1, 2, 3])
     print(x)
     print(type(x))

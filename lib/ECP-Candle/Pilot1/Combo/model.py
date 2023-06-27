@@ -38,6 +38,9 @@ import tensorflow as tf
 from scipy.stats.stats import pearsonr
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from deephyper_benchmark.integration.keras import count_params
+from deephyper_benchmark.utils.json_utils import array_to_json
+
 
 logger = logging.getLogger(__name__)
 
@@ -448,6 +451,10 @@ def mae(y_true, y_pred):
     return keras.metrics.mean_absolute_error(y_true, y_pred)
 
 
+def mse(y_true, y_pred):
+    return keras.metrics.mean_squared_error(y_true, y_pred)
+
+
 def evaluate_prediction(y_true, y_pred):
     mse = mean_squared_error(y_true, y_pred)
     mae = mean_absolute_error(y_true, y_pred)
@@ -604,7 +611,6 @@ def yaml_load(path):
 
 
 def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
-
     # Default Config from original Benchmark
     params = initialize_parameters()
 
@@ -654,7 +660,7 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
     if args.learning_rate:
         K.set_value(optimizer.lr, args.learning_rate)
 
-    model.compile(loss=args.loss, optimizer=optimizer, metrics=[mae, r2])
+    model.compile(loss=args.loss, optimizer=optimizer, metrics=[mse, mae, r2])
 
     # calculate trainable and non-trainable params
     params.update(candle.compute_trainable_params(model))
@@ -698,7 +704,7 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
     training_data = (x_train_list, y_train)
     validation_data = (x_valid_list, y_valid)
 
-    num_parameters = model.count_params()
+    num_parameters_info = count_params(model)
 
     history = model.fit(
         *training_data,
@@ -728,10 +734,39 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
     objective = all_scores["valid_r2"]  # validation R2
     objective = max(-1, objective)
 
+    # collect learning curves
+    lc_train_mse = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["mse"])])
+    )
+    lc_valid_mse = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["val_mse"])])
+    )
+
+    lc_train_mae = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["mae"])])
+    )
+    lc_valid_mae = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["val_mae"])])
+    )
+
+    lc_train_r2 = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["r2"])])
+    )
+    lc_valid_r2 = array_to_json(
+        np.asarray([[i + 1, l] for i, l in enumerate(history["val_r2"])])
+    )
+
     metadata = {
-        "num_parameters": num_parameters,
+        "num_parameters": num_parameters_info["num_parameters"],
+        "num_parameters_train": num_parameters_info["num_parameters_train"],
         "budget": len(history["loss"]),
         "stopped": len(history["loss"]) < args.epochs,
+        "lc_train_mse": lc_train_mse,
+        "lc_valid_mse": lc_valid_mse,
+        "lc_train_mae": lc_train_mae,
+        "lc_valid_mae": lc_valid_mae,
+        "lc_train_r2": lc_train_r2,
+        "lc_valid_r2": lc_valid_r2,
     }
     metadata.update(all_scores)
     return {"objective": objective, "metadata": metadata}
