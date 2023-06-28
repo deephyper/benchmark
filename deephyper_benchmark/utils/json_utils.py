@@ -10,7 +10,7 @@ class NumpyArrayEncoder(json.JSONEncoder):
 
 
 def array_to_json(x: np.ndarray) -> str:
-    """Convert a numpy array to a json string.
+    """Converts a numpy array to a json string.
 
     Args:
         x (np.ndarray): a numpy array.
@@ -20,6 +20,19 @@ def array_to_json(x: np.ndarray) -> str:
     """
     x_json = json.dumps(x, cls=NumpyArrayEncoder)
     return x_json
+
+
+def json_to_array(x_json: str) -> np.ndarray:
+    """Converts an array saved as JSON to a numpy array.
+
+    Args:
+        x_json (str): the json encoded array.
+
+    Returns:
+        np.ndarray: the decoded numpy array.
+    """
+    x = np.asarray(json.loads(x_json))
+    return x
 
 
 if __name__ == "__main__":
