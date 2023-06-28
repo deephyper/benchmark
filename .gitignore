@@ -147,3 +147,4 @@ exp/
 .vscode/
 .old-benchmark/
 context.yaml
+test.py
