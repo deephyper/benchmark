@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 from pdebench.models.pinn.train import *
 from .model import FNN
@@ -7,6 +8,9 @@ from deephyper.search.hps import CBO
 from deephyper.evaluator import profile, RunningJob
 from deephyper.stopper.integration import DeepXDEStopperCallback
 from deephyper.stopper import LCModelStopper
+from deephyper_benchmark.utils.json_utils import array_to_json
+from fvcore.nn import FlopCountAnalysis
+from deephyper_benchmark.integration.torch import count_params
 
 
 @profile
@@ -16,7 +20,7 @@ def run(job: RunningJob) -> dict:
 
     stopper_callback = DeepXDEStopperCallback(job)
 
-    val_loss, test_loss, losshistory = run_training(
+    val_loss, test_loss, losshistory, model = run_training(
         net_class=FNN,
         scenario="diff-react",
         epochs=config["epochs"],
@@ -28,17 +32,30 @@ def run(job: RunningJob) -> dict:
         seed="0000",
         callbacks=stopper_callback,
     )
-    hist = {
-        "train": np.array(losshistory.loss_train).sum(axis=1),
-        "val": np.array(losshistory.loss_test).sum(axis=1),
-    }
+    param_count = count_params(model)
+    flops = FlopCountAnalysis(model, inputs=(torch.randn(1, 3))).total()
+
+    train_ls = np.array(losshistory.loss_train).sum(axis=1)
+    val_ls = np.array(losshistory.loss_test).sum(axis=1),
+    epoch_seq = np.arange(train_ls.shape[0])
+    lc_train_X = np.stack(epoch_seq, train_ls, axis=1)
+    lc_val_X = np.stack(epoch_seq, val_ls, axis=1)
+    lc_train_X_json = array_to_json(lc_train_X)
+    lc_val_X_json = array_to_json(lc_val_X)
+
     objective = -val_loss
     metadata = {
         "num_hyperparameters": len(job.parameters),
+        "num_parameters":param_count['num_parameters'],
+        "num_parameters_train":param_count["num_parameters_train"],
         "val_loss": val_loss,
         "test_loss": test_loss,
         "budget": stopper_callback.budget,
-        "learning_curve": hist,
+        "stopped":job.stopped,
+        "lc_train_X": lc_train_X_json,
+        "lc_val_X": lc_val_X_json,
+        "FLOPS": flops
+
     }
     return {"objective": objective, "metadata": metadata}
 
