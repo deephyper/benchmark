@@ -100,12 +100,17 @@ logging.basicConfig(
 
 Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):
 
-- `num_parameters`: integer value of the number of trainable parameters of the neural network.
-- `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
-- `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
+- [ ] `num_parameters`: integer value of the number of parameters in the neural network.
+- [ ]`num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
+- [ ] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
+- [ ] `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
 - `train_X`:  scalar value of the training metrics (replace `X` by the metric name, 1 key per metric).
 - `valid_X`: scalar value of the validation metrics (replace `X` by the metric name, 1 key per metric).
 - `test_X`: scalar value of the testing metrics (replace `X` by the metric name, 1 key per metric).
+- [ ] `flops`: number of flops of the model such as computed in `fvcore.nn.FlopCountAnalysis(...).total()` (See [documentation](https://detectron2.readthedocs.io/en/latest/modules/fvcore.html#module-fvcore.nn)).
+- [ ] `latency`: TO BE CLARIFIED
+- [ ] `lc_train_X`: recorded learning curves of the trained model, the `bi` variables are the budget value (e.g., epochs/batches), and the `yi` values are the recorded metric. `X` in `train_X` is replaced by the name of the metric such as `train_loss` or `train_accuracy`. The format is `[[b0, y0], [b1, y1], ...]`.
+- [ ] `lc_valid_X`: Same as `lc_train_X` but for validation data.
 
 
 The `@profile` decorator should be used on all `run`-functions to collect the `timestamp_start` and `timestamp_end` metadata.
@@ -116,7 +121,7 @@ The `@profile` decorator should be used on all `run`-functions to collect the `t
 | ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------- | --------------- | -------------- | ------------------- |
 | C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}$                                 | $\mathbb{R}$      | ❌              | ❌             | ms                  |
 | ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ❌             | min                 |
-| HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ✅             | ms to min           |
+| HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
 | PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$                            | $\mathbb{R}$      | ❌              | ✅             | ms                  |

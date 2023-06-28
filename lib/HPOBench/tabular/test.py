@@ -2,10 +2,10 @@ import os
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
-from hpobench.benchmarks.nas.tabular_benchmarks import SliceLocalizationBenchmark
+from hpobench.benchmarks.nas.tabular_benchmarks import NavalPropulsionBenchmark
 
-b = SliceLocalizationBenchmark(
-    data_path=os.path.join(DIR, "../build/HPOBench/data/fcnet_tabular_benchmarks/")
+b = NavalPropulsionBenchmark(
+    data_path=os.path.join(DIR, "build/HPOBench/data/fcnet_tabular_benchmarks/")
 )
 print(b.fidelity_space)
 
