@@ -3,6 +3,7 @@ from __future__ import division, print_function
 import collections
 import logging
 import os
+import time
 import warnings
 
 import yaml
@@ -706,6 +707,8 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
 
     num_parameters_info = count_params(model)
 
+    # Training
+    timestamp_duration = time.time() 
     history = model.fit(
         *training_data,
         batch_size=args.batch_size,
@@ -715,8 +718,13 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
         callbacks=callbacks,
         verbose=args.verbose,
     ).history
+    duration_train = time.time() - timestamp_duration
 
+
+    timestamp_duration = time.time() 
     y_train_pred = model.predict(x_train_list, batch_size=args.batch_size).flatten()
+    duration_batch_inference = (time.time() - timestamp_duration) / np.ceil(len(y_train_pred) / args.batch_size)
+
     scores_train = evaluate_prediction(y_train, y_train_pred)
     y_valid_pred = model.predict(x_valid_list, batch_size=args.batch_size).flatten()
     scores_valid = evaluate_prediction(y_valid, y_valid_pred)
@@ -759,6 +767,8 @@ def run_pipeline(config: dict = None, mode="valid", stopper_callback=None):
     metadata = {
         "num_parameters": num_parameters_info["num_parameters"],
         "num_parameters_train": num_parameters_info["num_parameters_train"],
+        "duration_train": duration_train,
+        "duration_batch_inference": duration_batch_inference,
         "budget": len(history["loss"]),
         "stopped": len(history["loss"]) < args.epochs,
         "lc_train_mse": lc_train_mse,

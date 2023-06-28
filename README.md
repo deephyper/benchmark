@@ -101,7 +101,7 @@ logging.basicConfig(
 Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):
 
 - [ ] `num_parameters`: integer value of the number of parameters in the neural network.
-- [ ]`num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
+- [ ] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
 - [ ] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
 - [ ] `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
 - `train_X`:  scalar value of the training metrics (replace `X` by the metric name, 1 key per metric).
