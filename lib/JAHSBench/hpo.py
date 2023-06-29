@@ -1,7 +1,9 @@
-import time
+import os
 import numpy as np
-from deephyper.problem import HpProblem
+import time
+
 from deephyper.evaluator import profile, RunningJob
+from deephyper.problem import HpProblem
 from . import model
 
 
