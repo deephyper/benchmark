@@ -8,22 +8,18 @@ import numpy as np
 class jahs_bench:
     """ A callable class implementing the JAHS benchmark problems. """
 
-    def __init__(self, nepochs=200, dataset="cifar10"):
+    def __init__(self, dataset="fashion_mnist"):
         """ Import and configure the jahs-bench module.
 
         Args:
-            nepochs (int, optional): Number of training epochs to use,
-                defaults to 200.
-
-            dataset (str): One of "cifar10" (default), "colorectal_history",
-                or "fashion_mnist"
+            dataset (str): One of "cifar10", "colorectal_history",
+                or "fashion_mnist" (default)
 
         """
 
         from jahs_bench.api import Benchmark
 
         ### JAHS bench settings ###
-        self.nepochs = nepochs
         MODEL_PATH = "."
         # Define the benchmark
         self.benchmark = Benchmark(
@@ -60,9 +56,11 @@ class jahs_bench:
             config['TrivialAugment'] = True
         else:
             config['TrivialAugment'] = False
+        # Check for nepochs
+        nepochs = 200
+        if 'nepochs' in x.keys():
+            nepochs = x['nepochs']
         # Evaluate and return
         fx = np.zeros(2)
-        result = self.benchmark(config, nepochs=self.nepochs)
-        fx[0] = result[self.nepochs]['valid-acc']
-        fx[1] = result[self.nepochs]['latency']
-        return fx[0], fx[1]
+        result = self.benchmark(config, nepochs=nepochs)
+        return result[nepochs]

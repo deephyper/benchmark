@@ -5,6 +5,9 @@ from deephyper.evaluator import profile, RunningJob
 from . import model
 
 
+# Read in whether to do single- or multi-objectives
+multiobj = int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 1))
+
 # Create problem
 problem = HpProblem()
 jahs_obj = model.jahs_bench()
@@ -17,22 +20,30 @@ problem.add_hyperparameter(["on", "off"], "TrivialAugment")
 # 6 categorical architecture design variables
 for i in range(1, 7):
     problem.add_hyperparameter([0, 1, 2, 3, 4], f"Op{i}")
+# 1 integer hyperparameter number of training epochs (1 to 200)
+problem.add_hyperparameter((1, 200), "discrete")
 
 @profile
-def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
+def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
 
     config = job.parameters
+    result = jahs_obj(config)
 
     if sleep:
-        t_sleep = np.random.normal(loc=sleep_mean, scale=sleep_noise)
-        t_sleep = max(t_sleep, 0)
+        t_sleep = config["runtime"] * sleep_scale
         time.sleep(t_sleep)
 
-    x = np.array([config[k] for k in config if "x" in k])
-    x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
-    f1, f2 = jahs_obj(config)
-
-    return f1, -f2
+    dh_data = {}
+    dh_data["metadata"] = result
+    if multiobj:
+        dh_data["objective"] = [
+                                config["valid-acc"],
+                                -config["latency"],
+                                -config['size_MB']
+                               ]
+    else:
+        dh_data["objective"] = config["valid-acc"]
+    return dh_data
 
 
 if __name__ == "__main__":
