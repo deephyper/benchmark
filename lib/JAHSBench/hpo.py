@@ -30,6 +30,7 @@ def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
 
     config = job.parameters
     result = jahs_obj(config)
+    print(result)
 
     if sleep:
         t_sleep = config["runtime"] * sleep_scale
@@ -39,12 +40,12 @@ def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
     dh_data["metadata"] = result
     if multiobj:
         dh_data["objective"] = [
-                                config["valid-acc"],
-                                -config["latency"],
-                                -config['size_MB']
+                                result["valid-acc"],
+                                -result["latency"],
+                                -result['size_MB']
                                ]
     else:
-        dh_data["objective"] = config["valid-acc"]
+        dh_data["objective"] = result["valid-acc"]
     return dh_data
 
 
