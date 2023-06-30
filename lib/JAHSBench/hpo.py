@@ -30,7 +30,6 @@ def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
 
     config = job.parameters
     result = jahs_obj(config)
-    print(result)
 
     if sleep:
         t_sleep = config["runtime"] * sleep_scale
