@@ -13,13 +13,14 @@ from fvcore.nn import FlopCountAnalysis
 from deephyper_benchmark.integration.torch import count_params
 
 
-DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
+
 
 
 @profile
 def run(job: RunningJob) -> dict:
     config = job.parameters
     dataset = os.environ.get("DEEPHYPER_BENCHMARK_DATASET")
+    DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
     DIR = os.path.dirname(os.path.abspath(__file__))
     stopper_callback = DeepXDEStopperCallback(job)
 
@@ -46,7 +47,9 @@ def run(job: RunningJob) -> dict:
     lc_train_X_json = array_to_json(lc_train_X)
     lc_val_X_json = array_to_json(lc_val_X)
 
+    print(DEEPHYPER_BENCHMARK_MOO,'sdfsdfasdfsf') 
     if DEEPHYPER_BENCHMARK_MOO:
+        print("Optimizing multiple objectives...")
         objective = [
             -sum(val_loss[:2]),
             -sum(val_loss[2:]),
@@ -73,10 +76,10 @@ def run(job: RunningJob) -> dict:
 
 # define the search space
 problem = HpProblem()
-problem.add_hyperparameter((5, 20), "num_layers", default_value=5)
+problem.add_hyperparameter((5, 50), "num_layers", default_value=5)
 problem.add_hyperparameter((1e-5, 1e-2), "lr", default_value=0.01)
 problem.add_hyperparameter((5, 50), "num_neurons", default_value=5)
-problem.add_hyperparameter((1, 200), "epochs", default_value=10)
+problem.add_hyperparameter((1, 10000), "epochs", default_value=10)
 problem.add_hyperparameter(
     ["relu", "swish", "tanh", "elu", "selu", "sigmoid"],
     "activation",

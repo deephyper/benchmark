@@ -1,5 +1,5 @@
 calls:
-- max_evals: 1
+- max_evals: 3
   timeout: null
 search:
   acq_func: UCB
@@ -10,7 +10,7 @@ search:
   initial_point_generator: random
   initial_points:
   - activation: tanh
-    epochs: 1
+    epochs: 10
     lr: 0.01
     num_layers: 5
     num_neurons: 5
@@ -40,12 +40,12 @@ search:
       name: activation
       type: categorical
       weights: null
-    - default: 1
+    - default: 10
       log: false
       lower: 1
       name: epochs
       type: uniform_int
-      upper: 200
+      upper: 100
     - default: 0.01
       log: false
       lower: 1.0e-05
@@ -57,18 +57,18 @@ search:
       lower: 5
       name: num_layers
       type: uniform_int
-      upper: 20
+      upper: 10
     - default: 5
       log: false
       lower: 5
       name: num_neurons
       type: uniform_int
-      upper: 50
+      upper: 20
     json_format_version: 0.4
     python_module_version: 0.6.1
   random_state: null
   scheduler: null
-  stopper: LCModelStopper
+  stopper: null
   surrogate_model: RF
   sync_communication: false
   type: CBO
