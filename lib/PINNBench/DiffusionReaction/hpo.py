@@ -13,20 +13,23 @@ from fvcore.nn import FlopCountAnalysis
 from deephyper_benchmark.integration.torch import count_params
 
 
+DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
+
+
 @profile
 def run(job: RunningJob) -> dict:
     config = job.parameters
-    dataset = os.environ.get('DEEPHYPER_BENCHMARK_DATASET')
-
+    dataset = os.environ.get("DEEPHYPER_BENCHMARK_DATASET")
+    DIR = os.path.dirname(os.path.abspath(__file__))
     stopper_callback = DeepXDEStopperCallback(job)
 
-    val_loss, test_loss, losshistory, model = run_training(
+    val_loss, test_loss, losshistory, model, duration_batch_inference = run_training(
         net_class=FNN,
         scenario="diff-react",
         epochs=config["epochs"],
         learning_rate=config["lr"],
         model_update=500,
-        root_path="./DiffusionReaction/build/PDEBench-DH/pdebench/data/" + dataset,
+        root_path=os.path.join(DIR, "build/PDEBench-DH/pdebench/data/" + dataset),
         flnm=dataset + ".h5",
         config=config,
         seed="0000",
@@ -43,20 +46,28 @@ def run(job: RunningJob) -> dict:
     lc_train_X_json = array_to_json(lc_train_X)
     lc_val_X_json = array_to_json(lc_val_X)
 
-    objective = -val_loss
+    if DEEPHYPER_BENCHMARK_MOO:
+        objective = [
+            -sum(val_loss[:2]),
+            -sum(val_loss[2:]),
+            -param_count["num_parameters_train"],
+            -duration_batch_inference,
+        ]
+    else:
+        objective = -sum(val_loss)
     metadata = {
-        "num_hyperparameters": len(job.parameters),
-        "num_parameters":param_count['num_parameters'],
-        "num_parameters_train":param_count["num_parameters_train"],
+        "num_parameters": param_count["num_parameters"],
+        "num_parameters_train": param_count["num_parameters_train"],
         "val_loss": val_loss,
-        "test_metrics": array_to_json(test_loss),
+        "test_rmse": test_loss[0],
         "budget": stopper_callback.budget,
-        "stopped":job.stopped(),
-        "lc_train_X": lc_train_X_json,
-        "lc_val_X": lc_val_X_json,
-        "FLOPS": flops
-
+        "stopped": job.stopped(),
+        "lc_train_loss": lc_train_X_json,
+        "lc_val_loss": lc_val_X_json,
+        "flops": flops,
+        "duration_batch_inference": duration_batch_inference,  # add the inference time in seconds
     }
+
     return {"objective": objective, "metadata": metadata}
 
 
@@ -81,36 +92,19 @@ def evaluate(config):
     from deepxde.callbacks import EarlyStopping
 
     callbacks = EarlyStopping(patience=100000)
+    DIR = os.path.dirname(os.path.abspath(__file__))
+    dataset = os.environ.get("DEEPHYPER_BENCHMARK_DATASET")
 
-    val_loss, test_loss, losshistory = run_training(
+    val_loss, test_loss, losshistory, model = run_training(
         net_class=FNN,
         scenario="diff-react",
         epochs=config["epochs"],
         learning_rate=config["lr"],
         model_update=1,
-        root_path="~/Downloads/2D/diffusion-reaction/",
+        root_path=os.path.join(DIR, "build/PDEBench-DH/pdebench/data/" + dataset),
         flnm="2D_diff-react_NA_NA.h5",
         config=config,
         seed="0000",
         callbacks=callbacks,
     )
     return val_loss, test_loss, losshistory
-
-
-# if __name__ == "__main__":
-#     default_config = problem.default_configuration
-#     # result = run(RunningJob(parameters=default_config))
-#     # print(f"{result=}")
-
-#     # stopper = SuccessiveHalvingStopper(min_steps=1, max_steps=200)
-#     # search = CBO(
-#     #        problem, run, initial_points=[problem.default_configuration], stopper=stopper
-#     #)
-#     # results = search.search(max_evals=100)
-#     # best_config = {'epochs': 10000, 'lr':1e-3, 'num_layers':6, 'num_neurons':40, 'activation': 'tanh'}
-#     # eval_val_loss, eval_test_loss, losshistory = evaluate(best_config)
-#     # print(eval_val_loss, eval_test_loss)
-
-#     # import pickle
-#     # with open('./history.pkl', 'wb') as f:
-#     #     pickle.dump(losshistory, f)

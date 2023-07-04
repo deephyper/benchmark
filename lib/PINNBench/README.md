@@ -80,7 +80,7 @@ import os
 os.environ['DEEPHYPER_BENCHMARK_DATASET'] = '2D_diff-react_NA_NA' # set benchmark dataset
 
 import deephyper_benchmark as dhb
-diff_react = dhb.load("PINNBench/Diffusion-reaction")
+diff_react = dhb.load("PINNBench/DiffusionReaction")
 
 from deephyper.evaluator import RunningJob
 config = diff_react.hpo.problem.default_configuration # get a default config to test
@@ -89,3 +89,17 @@ res = diff_react.hpo.run(RunningJob(parameters=config))
 
 ### Configuration
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
+
+### Supported Metadata
+- [x] `num_parameters`: integer value of the number of parameters in the neural network.
+- [x]`num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
+- [x] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
+- [x] `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
+- [x] `train_loss`:  scalar value of the training metrics (replace `X` by the metric name, 1 key per metric).
+- [x] `valid_loss`: scalar value of the validation metrics (replace `X` by the metric name, 1 key per metric).
+- [x] `test_rmse`: scalar value of the testing metrics (replace `X` by the metric name, 1 key per metric).
+- [x] `flops`: number of flops of the model such as computed in `fvcore.nn.FlopCountAnalysis(...).total()` (See [documentation](https://detectron2.readthedocs.io/en/latest/modules/fvcore.html#module-fvcore.nn)).
+- [ ] `latency`: TO BE CLARIFIED
+- [x] `lc_train_loss`: recorded learning curves of the trained model, the `bi` variables are the budget value (e.g., epochs/batches), and the `yi` values are the recorded metric. `X` in `train_X` is replaced by the name of the metric such as `train_loss` or `train_accuracy`. The format is `[[b0, y0], [b1, y1], ...]`.
+- [x] `lc_valid_loss`: Same as `lc_train_X` but for validation data.
+- [x] `duration_batch_inference`: average inference time for a single data point.
