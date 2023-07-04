@@ -71,7 +71,7 @@ This benchmark is based on **modified** [`PDEBench`](https://github.com/pdebench
 
 To install the **modified** `PDEBench` and this benchmark
 ```
-python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/Diffusion-reaction');"
+python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/DiffusionReaction');"
 ```
 
 Run the hyperparameter search

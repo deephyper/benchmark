@@ -148,3 +148,5 @@ exp/
 .old-benchmark/
 context.yaml
 test.py
+plot.py
+*.pkl
