@@ -7,7 +7,7 @@ This set of benchmarks provides precomputed evaluations of neural networks for h
 To install this benchmark the following command can be run:
 
 ```console
-python -c "import deephyper_benchmark as dhb; dhb.install('HPOBench/tabular/navalpropulsion');"
+python -c "import deephyper_benchmark as dhb; dhb.install('HPOBench/tabular');"
 ```
 
 For detailed information see the [NeurIPS paper describing the HPOBench benchmark](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/93db85ed909c13838ff95ccfa94cebd9-Abstract-round2.html).
