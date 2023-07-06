@@ -30,7 +30,7 @@ def run(job: RunningJob) -> dict:
         epochs=config["epochs"],
         learning_rate=config["lr"],
         model_update=500,
-        root_path=os.path.join(DIR, "build/PDEBench-DH/pdebench/data/" + dataset),
+        root_path=os.path.join(DIR, "../build/PDEBench-DH/pdebench/data/" + dataset),
         flnm=dataset + ".h5",
         config=config,
         seed="0000",
@@ -47,7 +47,6 @@ def run(job: RunningJob) -> dict:
     lc_train_X_json = array_to_json(lc_train_X)
     lc_val_X_json = array_to_json(lc_val_X)
 
-    print(DEEPHYPER_BENCHMARK_MOO,'sdfsdfasdfsf') 
     if DEEPHYPER_BENCHMARK_MOO:
         print("Optimizing multiple objectives...")
         objective = [
@@ -76,10 +75,10 @@ def run(job: RunningJob) -> dict:
 
 # define the search space
 problem = HpProblem()
-problem.add_hyperparameter((5, 50), "num_layers", default_value=5)
+problem.add_hyperparameter((5, 20), "num_layers", default_value=5)
 problem.add_hyperparameter((1e-5, 1e-2), "lr", default_value=0.01)
-problem.add_hyperparameter((5, 50), "num_neurons", default_value=5)
-problem.add_hyperparameter((1, 10000), "epochs", default_value=10)
+problem.add_hyperparameter((5, 30), "num_neurons", default_value=5)
+problem.add_hyperparameter((100, 1000), "epochs", default_value=100)
 problem.add_hyperparameter(
     ["relu", "swish", "tanh", "elu", "selu", "sigmoid"],
     "activation",
@@ -104,7 +103,7 @@ def evaluate(config):
         epochs=config["epochs"],
         learning_rate=config["lr"],
         model_update=1,
-        root_path=os.path.join(DIR, "build/PDEBench-DH/pdebench/data/" + dataset),
+        root_path=os.path.join(DIR, "../build/PDEBench-DH/pdebench/data/" + dataset),
         flnm="2D_diff-react_NA_NA.h5",
         config=config,
         seed="0000",

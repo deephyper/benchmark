@@ -1,5 +1,5 @@
 calls:
-- max_evals: 3
+- max_evals: 100
   timeout: null
 search:
   acq_func: UCB
@@ -45,7 +45,7 @@ search:
       lower: 1
       name: epochs
       type: uniform_int
-      upper: 100
+      upper: 1000
     - default: 0.01
       log: false
       lower: 1.0e-05
@@ -57,13 +57,13 @@ search:
       lower: 5
       name: num_layers
       type: uniform_int
-      upper: 10
+      upper: 20
     - default: 5
       log: false
       lower: 5
       name: num_neurons
       type: uniform_int
-      upper: 20
+      upper: 30
     json_format_version: 0.4
     python_module_version: 0.6.1
   random_state: null
