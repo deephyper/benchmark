@@ -1,26 +1,28 @@
 import os
-import torch
+
 import numpy as np
-from pdebench.models.pinn.train import *
-from .model import FNN
+import torch
+from deephyper.evaluator import RunningJob, profile
 from deephyper.problem import HpProblem
-from deephyper.search.hps import CBO
-from deephyper.evaluator import profile, RunningJob
 from deephyper.stopper.integration import DeepXDEStopperCallback
-from deephyper.stopper import LCModelStopper
-from deephyper_benchmark.utils.json_utils import array_to_json
 from fvcore.nn import FlopCountAnalysis
+from pdebench.models.pinn.train import *
+
 from deephyper_benchmark.integration.torch import count_params
+from deephyper_benchmark.utils.json_utils import array_to_json
 
+from .model import FNN
 
-
+DEEPHYPER_BENCHMARK_DATASET = os.environ.get(
+    "DEEPHYPER_BENCHMARK_DATASET", "2D_diff-react_NA_NA"
+)
+DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
 
 
 @profile
 def run(job: RunningJob) -> dict:
     config = job.parameters
-    dataset = os.environ.get("DEEPHYPER_BENCHMARK_DATASET")
-    DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
+    dataset = DEEPHYPER_BENCHMARK_DATASET
     DIR = os.path.dirname(os.path.abspath(__file__))
     stopper_callback = DeepXDEStopperCallback(job)
 

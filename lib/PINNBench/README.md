@@ -65,6 +65,7 @@ result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.473
 
 
 ## Diffusion-reaction Equation
+
 This benchmark is based on **modified** [`PDEBench`](https://github.com/pdebench/PDEBench) and [`DeepXDE`](https://github.com/lululxvi/deepxde). 
 
 ### Installation
@@ -89,7 +90,14 @@ res = diff_react.hpo.run(RunningJob(parameters=config))
 ```
 
 ### Configuration
+
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
+
+Different parameters can be set to configure this benchmark.
+
+- Environment variable `DEEPHYPER_BENCHMARK_DATASET` with **default value `2D_diff-react_NA_NA`**. The possible values are:
+    - `2D_diff-react_NA_NA`: ...
+- Environment variable `DEEPHYPER_BENCHMARK_MOO` with value `0` or `1` to select if the task should be run with single or multiple objectives. **Defaults to `0` for single-objective**.
 
 ### Supported Metadata
 - [x] `num_parameters`: integer value of the number of parameters in the neural network.
@@ -105,10 +113,11 @@ It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instruction
 - [x] `lc_valid_loss`: Same as `lc_train_X` but for validation data.
 - [x] `duration_batch_inference`: average inference time for a single data point.
 
-### Multi-objective Optimization (MOO)
-MOO is supported for Diffusion-reaction PINN benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO = "1"`. There are 4 objectives under MOO
+### Multi-Objective Optimization (MOO)
+
+MOO is supported for the Diffusion-reaction PINN benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO = "1"`. There are 4 objectives under MOO
 
 - Validation PDE loss.
 - Validation boundary and initial condition solution loss.
-- Number of trainable parameters.
+- The number of trainable parameters.
 - Batch inference duration.
