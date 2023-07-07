@@ -20,7 +20,7 @@ def run(job: RunningJob) -> dict:
     num_layers = config["num_layers"]
     hidden_dim = config["hidden_dim"]
     output_dim = 1
-    epochs = 100  
+    epochs = 100
     lr = config["lr"]
     alpha = config["alpha"]
     activation = config["activation"]
@@ -41,8 +41,8 @@ def run(job: RunningJob) -> dict:
     objective = job.objective
 
     # calculate test scores
-    pred_test = sup.net(test['x'][:,0], test['x'][:,1])
-    test_loss = np.mean((test['y'] - pred_test)**2)
+    pred_test = sup.net(test["x"][:, 0], test["x"][:, 1])
+    test_loss = np.mean((test["y"] - pred_test) ** 2)
 
     metadata = {
         "num_parameters": sup.net.count_params(),
@@ -92,7 +92,8 @@ def evaluate(config):
         act_fn=activation,
     )
     sup = BurgerSupervisor(nu=nu, net=net, epochs=epochs, lr=lr, alpha=alpha)
-    val_f_loss = sup.train(train, test)  
+    val_f_loss = sup.train(train, test)
+
 
 if __name__ == "__main__":
     import time

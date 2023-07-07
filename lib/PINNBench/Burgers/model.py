@@ -249,7 +249,7 @@ class BurgerSupervisor:
         train_loss = loss_u.numpy() + loss_f.numpy()
         val_pred = self.net(x_val[:, 0], x_val[:, 1])
         val_u_loss = self.loss(y_val, val_pred).numpy()
-        return train_loss, val_u_loss 
+        return train_loss, val_u_loss
 
     def train(self, train, val):
         x_u_train = tf.cast(train["x_u"], tf.float32)
