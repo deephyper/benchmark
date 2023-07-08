@@ -23,7 +23,7 @@ problem.add_hyperparameter(["on", "off"], "TrivialAugment")
 for i in range(1, 7):
     problem.add_hyperparameter([0, 1, 2, 3, 4], f"Op{i}")
 # 1 integer hyperparameter number of training epochs (1 to 200)
-problem.add_hyperparameter((1, 200), "discrete")
+problem.add_hyperparameter((1, 200), "nepochs")
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
@@ -32,7 +32,7 @@ def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
     result = jahs_obj(config)
 
     if sleep:
-        t_sleep = config["runtime"] * sleep_scale
+        t_sleep = result["runtime"] * sleep_scale
         time.sleep(t_sleep)
 
     dh_data = {}
