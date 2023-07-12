@@ -20,13 +20,13 @@ class jahs_bench:
         from jahs_bench.api import Benchmark
 
         ### JAHS bench settings ###
-        MODEL_PATH = "."
+        MODEL_PATH = os.path.dirname(os.path.abspath(__file__))
         # Define the benchmark
         self.benchmark = Benchmark(
                 task=dataset,
                 save_dir=MODEL_PATH,
                 kind="surrogate",
-                download=True
+                download=False
             )
 
     def __call__(self, x):

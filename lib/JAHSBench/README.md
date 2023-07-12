@@ -1,4 +1,3 @@
-
 # JAHS Benchmark Suite
 
 This module contains a DeepHyper wrapper for
@@ -16,14 +15,26 @@ benchmark problem to study the performance of AutoML techniques on joint
 architecture-hyperparameter search tasks at minimal expense.
 
 The models allow us to tune 2 continuous training hyperparameters
-(``LearningRate`` and ``WeightDecay``),
+ - ``LearningRate`` and
+ - ``WeightDecay``,
+
 2 categorical training hyperparameters
-(``Activation`` and ``TrivialAugment``), and
-5 categorical architecture parameters
-(``Op{i}`` for ``i=0, ..., 4``).
+ - ``Activation`` and
+ - ``TrivialAugment``,
+
+and 5 categorical architecture parameters
+ - ``Op{i}`` for ``i=0, ..., 4``.
+
+For DeepHyper's implementation, we have added 9th integer-valued parameter,
+which is the number of epochs trained
+ - ``nepochs``.
+
+When run with the option ``wait=True``, ``JAHSBench`` will wait for an
+amount of time proportional to the ``runtime`` field returned by
+JAHS-Bench-201's surrogates. By default, this is 1% of the true runtime.
 
 The benchmark can be run to tune a single objective (``valid-acc``) or
-two objectives (``valid-acc`` and ``latency``).
+three objectives (``valid-acc``, ``latency``, and ``size_MB``).
 
 For further information, see:
 
@@ -47,8 +58,12 @@ To use the benchmark follow this example set of instructions:
 
 ```python
 
-# Load JAHS-bench-201
 import deephyper_benchmark as dhb
+
+# Install JAHS-bench-201 and fetch data
+dhb.install("JAHSBench")
+
+# Load JAHS-bench-201
 dhb.load("JAHSBench")
 
 # Example of running one evaluation of JAHSBench
@@ -58,12 +73,15 @@ res = jahsbench.hpo.run(RunningJob(parameters=config))
 
 ```
 
-Note that the first time that this benchmark is called in a new directory,
-the training data must be downloaded and the random forest model must be built.
-This may require a significant amount of time.
+Note that JAHS-Bench-201 uses XGBoost, which may not be compatible with older
+versions of MacOS.
+Additionally, the surrogate data has been pickled with an older version
+of scikit-learn and newer versions will fail to correctly load the surrogate
+models.
 
-After the initial time required to download and build the models, the
-surrogate problem should run relatively quickly.
+For more information, see the following GitHub issues:
+ - https://github.com/automl/jahs_bench_201/issues/6
+ - https://github.com/automl/jahs_bench_201/issues/18
 
 ## Evaluating Results
 
@@ -75,5 +93,5 @@ See their
 for more details.
 
 For multiobjective runs, we recommend a reference point of 
-``(val_acc = 0, latency=10)``, as discussed in 
+``(val_acc = 0, latency=10, size_MB=10000)``, as discussed in 
 [this GitHub issue](https://github.com/automl/jahs_bench_201/issues/19).
