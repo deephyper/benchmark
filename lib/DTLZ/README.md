@@ -70,6 +70,10 @@ res = dtlz.hpo.run(RunningJob(parameters=config))
 
 ```
 
+## Configuration
+
+- Environment variable `DEEPHYPER_BENCHMARK_FAILURES` with value `0` or `1` to activate or deactivate failures. Defaults to `0`.
+
 ## Evaluating Results
 
 Evaluating the performance of a multiobjective solver is nontrivial.

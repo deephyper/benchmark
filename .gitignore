@@ -146,3 +146,7 @@ exp/
 # vscode settings
 .vscode/
 .old-benchmark/
+context.yaml
+test.py
+plot.py
+*.pkl

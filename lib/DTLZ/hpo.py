@@ -1,10 +1,10 @@
 import os
-from importlib import import_module
-
 import time
+
 import numpy as np
+from deephyper.evaluator import RunningJob, profile
 from deephyper.problem import HpProblem
-from deephyper.evaluator import profile, RunningJob
+
 from . import model as dtlz
 
 # Read DTLZ problem name and acquire pointer
@@ -16,7 +16,10 @@ dtlz_class_ptr = getattr(dtlz, dtlz_prob_name)
 nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 nb_obj = int(os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2))
 soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6))
-domain = (0., 1.)
+domain = (0.0, 1.0)
+
+# Failures
+DEEPHYPER_BENCHMARK_FAILURES = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_FAILURES", 0)))
 
 # Create problem
 problem = HpProblem()
@@ -27,7 +30,6 @@ for i in range(nb_dim):
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
-
     config = job.parameters
 
     if sleep:
@@ -38,6 +40,10 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
     ff = [-fi for fi in dtlz_obj(x)]
+
+    if DEEPHYPER_BENCHMARK_FAILURES:
+        if any(xi < 0.25 for xi in x):
+            ff = ["F" for _ in ff]
 
     return ff
 

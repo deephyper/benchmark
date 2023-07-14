@@ -1,4 +1,5 @@
 import copy
+import os
 import traceback
 
 from deephyper.evaluator import profile
@@ -6,6 +7,13 @@ from deephyper.problem import HpProblem
 from deephyper.stopper.integration import TFKerasStopperCallback
 
 from .model import run_pipeline
+
+
+DEEPHYPER_BENCHMARK_MAX_EPOCHS = int(
+    os.environ.get("DEEPHYPER_BENCHMARK_MAX_EPOCHS", 50)
+)
+DEEPHYPER_BENCHMARK_TIMEOUT = int(os.environ.get("DEEPHYPER_BENCHMARK_TIMEOUT", 1800))
+DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
 
 
 problem = HpProblem()
@@ -28,7 +36,6 @@ default_dense = [1000, 1000, 1000]
 default_dense_feature_layers = [1000, 1000, 1000]
 
 for i in range(len(default_dense)):
-
     problem.add_hyperparameter(
         (10, 1024, "log-uniform"),
         f"dense_{i}",
@@ -87,7 +94,6 @@ def remap_hyperparameters(config: dict):
     dense = []
     dense_feature_layers = []
     for i in range(len(default_dense)):
-
         key = f"dense_{i}"
         dense.append(config.pop(key))
 
@@ -100,12 +106,11 @@ def remap_hyperparameters(config: dict):
 
 @profile
 def run(job, optuna_trial=None):
-
     config = copy.deepcopy(job.parameters)
 
     params = {
-        "epochs": 50,
-        "timeout": 60 * 30,  # 30 minutes per model
+        "epochs": DEEPHYPER_BENCHMARK_MAX_EPOCHS,
+        "timeout": DEEPHYPER_BENCHMARK_TIMEOUT,
         "verbose": False,
     }
     if len(config) > 0:
@@ -113,11 +118,8 @@ def run(job, optuna_trial=None):
         params.update(config)
 
     if optuna_trial is None:
-        stopper_callback = TFKerasStopperCallback(
-            job, monitor="val_r2", mode="max" 
-        )
+        stopper_callback = TFKerasStopperCallback(job, monitor="val_r2", mode="max")
     else:
-
         from deephyper_benchmark.integration.optuna import KerasPruningCallback
 
         stopper_callback = KerasPruningCallback(optuna_trial, "val_r2")
@@ -127,10 +129,21 @@ def run(job, optuna_trial=None):
     except Exception as e:
         print(traceback.format_exc())
         score = {"objective": "F"}
-        keys = "m:num_parameters,m:budget,m:stopped,m:train_mse,m:train_mae,m:train_r2,m:train_corr,m:valid_mse,m:valid_mae,m:valid_r2,m:valid_corr,m:test_mse,m:test_mae,m:test_r2,m:test_corr"
+        keys = "m:num_parameters,m:num_parameters_train,m:duration_train,m:duration_batch_inference,m:budget,m:stopped,m:train_mse,m:train_mae,m:train_r2,m:train_corr,m:valid_mse,m:valid_mae,m:valid_r2,m:valid_corr,m:test_mse,m:test_mae,m:test_r2,m:test_corr,m:lc_train_mse,m:lc_valid_mse,m:lc_train_mae,m:lc_valid_mae,m:lc_train_r2,m:lc_valid_r2"
         metadata = {k.strip("m:"): None for k in keys.split(",")}
         score["metadata"] = metadata
-        
+
+    # Handle multi-objective optimization (all maximized)
+    if DEEPHYPER_BENCHMARK_MOO:
+        if score["objective"] == "F":
+            score["objective"] = ["F", "F", "F"]
+        else:
+            score["objective"] = [
+                score["objective"],
+                -score["metadata"]["num_parameters_train"],
+                -score["metadata"]["duration_batch_inference"],
+            ]
+
     return score
 
 
