@@ -18,6 +18,7 @@ class jahs_bench:
         """
 
         from jahs_bench.api import Benchmark
+        import os
 
         ### JAHS bench settings ###
         MODEL_PATH = os.path.dirname(os.path.abspath(__file__))
