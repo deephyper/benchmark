@@ -30,6 +30,18 @@ class jahs_bench:
                 download=False
             )
 
+    def __sample__(self):
+        """ Randomly sample a JAHS-Bench-201 configuration.
+
+        Returns:
+            dict: A configuration dictionary.
+
+        """
+
+        config = self.benchmark.sample_config()
+        config['nepochs'] = np.random.randint(1, 200)
+        return config
+
     def __call__(self, x):
         """ DeepHyper compatible objective function calling jahs-bench.
 
