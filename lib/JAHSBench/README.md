@@ -66,10 +66,12 @@ dhb.install("JAHSBench")
 # Load JAHS-bench-201
 dhb.load("JAHSBench")
 
+from deephyper_benchmark.lib.jahsbench import hpo
+
 # Example of running one evaluation of JAHSBench
 from deephyper.evaluator import RunningJob
-config = jahsbench.hpo.problem.default_configuration # get a default config to test
-res = jahsbench.hpo.run(RunningJob(parameters=config))
+config = hpo.problem.jahs_obj.__sample__() # get a default config to test
+res = hpo.run(RunningJob(parameters=config))
 
 ```
 
@@ -93,5 +95,15 @@ See their
 for more details.
 
 For multiobjective runs, we recommend a reference point of 
-``(val_acc = 0, latency=10, size_MB=10000)``, as discussed in 
+``(val_acc = 0, latency=10, size_MB=100)``, as discussed in 
 [this GitHub issue](https://github.com/automl/jahs_bench_201/issues/19).
+
+To evaluate hypervolume with this reference point, use our metrics
+
+```python
+
+from deephyper_benchmark.lib.jahsbench import metrics
+evaluator = metrics.PerformanceEvaluator()
+hv = evaluator.hypervolume(res)
+
+```
