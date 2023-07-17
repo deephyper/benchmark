@@ -127,6 +127,7 @@ The `@profile` decorator should be used on all `run`-functions to collect the `t
 | PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms                  |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
 | DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
+| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\text{categorical}^8\times\mathbb{Z}$                               |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
 |                |                                                                          |                                              |                   |                 |                |                     |
       
       
