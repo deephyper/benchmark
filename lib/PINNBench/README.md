@@ -1,15 +1,18 @@
 # Physics-informed Neural Networks Benchmark
+
 Physics-Informed Neural Networks (PINNs) are a class of machine learning models that combine the strengths of neural networks and physics-based modeling. PINNs are used to solve partial differential equations (PDEs) and other physical problems by learning a solution directly from data.
 
 The basic idea behind PINNs is to use a neural network to approximate the solution to a PDE, while also enforcing the underlying physical laws that govern the problem. This is achieved by incorporating the PDE as a constraint in the neural network training process. More details can be found in the [original work](https://arxiv.org/abs/1711.10561).
 
-This set of benchmarks seek to incorporate AutoML workflow into the development of PINNs with DeepHyper. The PINN benchmark problems support Hyperparameter Optimization (HPO), Neural Architecture Search (NAS), and Multi-fidelity evaluations. 
+This set of benchmarks seeks to incorporate AutoML workflow into the development of PINNs with DeepHyper. The PINN benchmark problems support Hyperparameter Optimization (HPO), Neural Architecture Search (NAS), and Multi-fidelity evaluations. 
 
-The current available problems are 
+The currently available problems are 
 
 <!-- [Burgers Equation](#burgers-equation) -->
 
-[Diffusion-reaction Equation](#diffusion-reaction-equation)
+- [Diffusion-reaction Equation](#diffusion-reaction-equation)
+
+Information about the size of the datasets used by each benchmark is available at [PDEBench - Download](https://github.com/pdebench/PDEBench/tree/main/pdebench/data_download#downloading-pdebench-datasets-earth_asia).
 
 <!-- 
 ## Burgers Equation
@@ -19,6 +22,8 @@ To install
 ```
 python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/Burgers');"
 ```
+-->
+
 
 <!-- PINNs are neural networks are a type of machine learning method that combines deep neural networks with physical equations to solve complex physical problems. In the case of 1-D Burgers Equation, training a PINN, $\hat{u}$, is to minimize a compound loss function. The 1-D Burgers equation has the following form:
 
@@ -60,7 +65,8 @@ The default configuration of the PINN.
 
 ```
 result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.47377, 'timestamp_end': 1680036380.2708638, 'num_parameters': 171, 'train_loss': 0.06834503, 'val_loss': 0.06480624, 'test_loss': 0.066540696, 'budget': 1000, 'stopped': False, 'infos_stopped': None}}
-``` --> -->
+``` 
+-->
 
 
 
@@ -99,7 +105,8 @@ Different parameters can be set to configure this benchmark.
     - `2D_diff-react_NA_NA`: ...
 - Environment variable `DEEPHYPER_BENCHMARK_MOO` with value `0` or `1` to select if the task should be run with single or multiple objectives. **Defaults to `0` for single-objective**.
 
-### Supported Metadata
+### Metadata
+
 - [x] `num_parameters`: integer value of the number of parameters in the neural network.
 - [x] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
 - [x] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
