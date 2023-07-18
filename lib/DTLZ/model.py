@@ -376,7 +376,7 @@ class dtlz4(__dtlz_base__):
 
     """
 
-    def __init__(self, num_des, num_obj=3, offset=0.0, alpha=100.0):
+    def __init__(self, num_des, num_obj=3, offset=0.5, alpha=100.0):
         """ Constructor for DTLZ7, with modified default offset.
 
         Args:
@@ -457,10 +457,11 @@ class dtlz5(__dtlz_base__):
         # Initialize kernel function
         ker = __g2__(self.n, self.o, self.offset)
         # Calculate theta values
-        theta = np.zeros(self.o - 1)
+        theta = np.zeros(self.o)
         g2x = ker(x)
-        for i in range(self.o - 1):
-            theta[i] = np.pi * (1 + 2 * g2x * x[i]) / (4 * (1 + g2x))
+        theta[0] = x[0]
+        for i in range(1, self.o):
+            theta[i] = (1 + 2 * g2x * x[i]) / (2 * (1 + g2x))
         # Initialize output array
         fx = np.zeros(self.o)
         fx[:] = (1.0 + g2x)
@@ -523,10 +524,11 @@ class dtlz6(__dtlz_base__):
         # Initialize kernel function
         ker = __g3__(self.n, self.o, self.offset)
         # Calculate theta values
-        theta = np.zeros(self.o - 1)
+        theta = np.zeros(self.o)
         g3x = ker(x)
-        for i in range(self.o - 1):
-            theta[i] = np.pi * (1 + 2 * g3x * x[i]) / (4 * (1 + g3x))
+        theta[0] = x[0]
+        for i in range(1, self.o):
+            theta[i] = (1 + 2 * g3x * x[i]) / (2 * (1 + g3x))
         # Initialize output array
         fx = np.zeros(self.o)
         fx[:] = (1.0 + g3x)
@@ -594,7 +596,7 @@ class dtlz7(__dtlz_base__):
         # Calculate kernel functions
         gx = 1.0 + ker(x)
         hx = (-np.sum(x[:self.o-1] *
-                      (1.0 + np.sin(3.0 * np.pi * x[:self.o-1]) / gx))
+                      (1.0 + np.sin(3.0 * np.pi * x[:self.o-1])) / gx)
                       + float(self.o))
         # Calculate the last entry in the output array
         fx[self.o-1] = gx * hx
