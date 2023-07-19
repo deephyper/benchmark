@@ -12,7 +12,7 @@ cd HPOBench/
 git checkout d8b45b1eca9a61c63fe79cdfbe509f77d3f5c779
 
 # Relax the constraint on the Python version required
-sed -i '' 's/>=3.6, <=3.10/>=3.6, <3.11/g' setup.py
+sed -i '' 's/>=3.6, <=3.10/>=3.6, <3.12/g' setup.py
 
 # Download data
 mkdir data && cd data/

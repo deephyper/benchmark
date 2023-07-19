@@ -52,7 +52,10 @@ def run(job: RunningJob) -> dict:
             -sum(val_loss[2:]),
             -param_count["num_parameters_train"],
             -duration_batch_inference,
+<<<<<<< HEAD
             -flops
+=======
+>>>>>>> upstream/main
         ]
     else:
         objective = -sum(val_loss)

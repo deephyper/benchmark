@@ -160,12 +160,11 @@ class PerformanceEvaluator:
         # Project each point onto DTLZ7 solution and calculate difference
         pts_proj = []
         for fi in pts:
-            gx = 1.0
-            hx = float(self.nobjs)
-            for j in range(self.nobjs-1):
-                hx = hx - ((fi[j] / (1.0 + gx)) * (1.0 + np.sin(3.0 * np.pi
-                                                                * fi[j])))
-            pts_proj.append((1.0 + gx) * hx)
+            gx = 2.0
+            hx = (-np.sum(fi[:self.nobjs-1] *
+                  (1.0 + np.sin(3.0 * np.pi * fi[:self.nobjs-1])) / gx)
+                  + float(self.nobjs))
+            pts_proj.append(gx * hx)
         return np.array([np.abs(fi[-1] - fj) for fi, fj in zip(pts, pts_proj)])
 
 

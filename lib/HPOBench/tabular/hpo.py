@@ -60,6 +60,8 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     other_metadata = {}
 
+    consumed_time = 0  # the cost here corresponds to time
+
     if optuna_trial:
         for budget_i in range(min_b, max_b + 1):
             eval = b.objective_function(config, fidelity={"budget": budget_i})
@@ -69,6 +71,10 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
                 time.sleep(cost_step * DEEPHYPER_BENCHMARK_PROP_REAL_RUN_TIME)
 
             objective_i = -eval["function_value"]  # maximizing in deephyper
+
+            # Trial report is not support for MOO in Optuna
+            if DEEPHYPER_BENCHMARK_MOO: continue
+
             optuna_trial.report(objective_i, step=budget_i)
             if optuna_trial.should_prune():
                 break
@@ -76,7 +82,6 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
         objective = objective_i
 
     else:
-        consumed_time = 0  # the cost here corresponds to time
         for budget_i in range(min_b, max_b + 1):
             eval = b.objective_function(config, fidelity={"budget": budget_i})
 

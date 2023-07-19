@@ -101,7 +101,7 @@ logging.basicConfig(
 Benchmarks must return the following standard metadata when it applies, some metadata are specific to neural networks (e.g., `num_parameters`):
 
 - [ ] `num_parameters`: integer value of the number of parameters in the neural network.
-- [ ]`num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
+- [ ] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
 - [ ] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
 - [ ] `stopped`: boolean value indicating if the evaluation was stopped before consuming the maximum budget.
 - `train_X`:  scalar value of the training metrics (replace `X` by the metric name, 1 key per metric).
@@ -120,13 +120,14 @@ The `@profile` decorator should be used on all `run`-functions to collect the `t
 | Name       | Description                                                                  | Variable(s) Type                             | Objective(s) Type | Multi-Objective | Multi-Fidelity | Evaluation Duration |
 | ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------- | --------------- | -------------- | ------------------- |
 | C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}$                                 | $\mathbb{R}$      | ❌              | ❌             | ms                  |
-| ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ❌              | ❌             | min                 |
+| ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | min                 |
 | HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
-| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$                            | $\mathbb{R}$      | ❌              | ✅             | ms                  |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms                  |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
 | DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
+| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\text{categorical}^8\times\mathbb{Z}$                               |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
 |                |                                                                          |                                              |                   |                 |                |                     |
       
       

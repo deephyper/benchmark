@@ -1,15 +1,17 @@
 # Physics-informed Neural Networks Benchmark
+
 Physics-Informed Neural Networks (PINNs) are a class of machine learning models that combine the strengths of neural networks and physics-based modeling. PINNs are used to solve partial differential equations (PDEs) and other physical problems by learning a solution directly from data.
 
 The basic idea behind PINNs is to use a neural network to approximate the solution to a PDE, while also enforcing the underlying physical laws that govern the problem. This is achieved by incorporating the PDE as a constraint in the neural network training process. More details can be found in the [original work](https://arxiv.org/abs/1711.10561).
 
-This set of benchmarks seek to incorporate AutoML workflow into the development of PINNs with DeepHyper. The PINN benchmark problems support Hyperparameter Optimization (HPO), Neural Architecture Search (NAS), and Multi-fidelity evaluations. 
+This set of benchmarks seeks to incorporate AutoML workflow into the development of PINNs with DeepHyper. The PINN benchmark problems support Hyperparameter Optimization (HPO), Neural Architecture Search (NAS), and Multi-fidelity evaluations. 
 
-The current available problems are 
+The currently available problems are 
 
 <!-- [Burgers Equation](#burgers-equation) -->
+<!-- [Burgers Equation](#burgers-equation) -->
 
-[Diffusion-reaction Equation](#diffusion-reaction-equation)
+- [Diffusion-reaction Equation](#diffusion-reaction-equation)
 
 <!-- 
 ## Burgers Equation
@@ -19,6 +21,8 @@ To install
 ```
 python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/Burgers');"
 ```
+-->
+
 
 <!-- PINNs are neural networks are a type of machine learning method that combines deep neural networks with physical equations to solve complex physical problems. In the case of 1-D Burgers Equation, training a PINN, $\hat{u}$, is to minimize a compound loss function. The 1-D Burgers equation has the following form:
 
@@ -34,6 +38,7 @@ and the loss according to the governing equation (PDE loss) for every other poin
 $$L_f  = \vert \vert \frac{\partial \hat{u}}{\partial t} + \hat{u}\frac{\partial \hat{u}}{\partial x} - \nu \frac{\partial^2 \hat{u}}{\partial x^2})\vert \vert^2_2.$$ -->
 
 
+<!-- ### Hyperparameter Search
 <!-- ### Hyperparameter Search
 The objective of this benchmark is to optimize a set of hyperparameters for a feedforward neural network, including `num_layers`, `lr` (the learning rate of the optimizer), `hidden_dim` (the number of neurons in the hidden layers), `alpha` (the PDE loss coefficient), and `activation` (the activation function). The optimization is performed by minimizing the negative total loss value from the validation dataset.
 
@@ -65,6 +70,7 @@ result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.473
 
 
 ## Diffusion-reaction Equation
+
 This benchmark is based on **modified** [`PDEBench`](https://github.com/pdebench/PDEBench) and [`DeepXDE`](https://github.com/lululxvi/deepxde). 
 
 ### Installation
@@ -86,9 +92,25 @@ diff_react = dhb.load("PINNBench/DiffusionReaction")
 from deephyper.evaluator import RunningJob
 config = diff_react.hpo.problem.default_configuration # get a default config to test
 res = diff_react.hpo.run(RunningJob(parameters=config))
+python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/DiffusionReaction');"
+```
+
+Run the hyperparameter search
+```
+import os
+os.environ['DEEPHYPER_BENCHMARK_DATASET'] = '2D_diff-react_NA_NA' # set benchmark dataset
+os.environ['DEEPHYPER_BENCHMARK_MOO'] = '1' # enable multi-objective optimization
+
+import deephyper_benchmark as dhb
+diff_react = dhb.load("PINNBench/DiffusionReaction")
+
+from deephyper.evaluator import RunningJob
+config = diff_react.hpo.problem.default_configuration # get a default config to test
+res = diff_react.hpo.run(RunningJob(parameters=config))
 ```
 
 ### Configuration
+
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
 
 ### Supported datasets
