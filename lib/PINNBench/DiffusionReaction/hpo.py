@@ -52,10 +52,7 @@ def run(job: RunningJob) -> dict:
             -sum(val_loss[2:]),
             -param_count["num_parameters_train"],
             -duration_batch_inference,
-<<<<<<< HEAD
             -flops
-=======
->>>>>>> upstream/main
         ]
     else:
         objective = -sum(val_loss)
@@ -86,7 +83,7 @@ problem.add_hyperparameter(
     "activation",
     default_value="tanh",
 )
-problem.add_hyperparameter(["True", "False"], "skip_co", default_value="True")
+problem.add_hyperparameter(["True", "False"], "skip_co", default_value="False")
 problem.add_hyperparameter((0, 1.0), "dropout_rate", default_value=0)
 problem.add_hyperparameter(
     ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
