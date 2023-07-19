@@ -17,7 +17,7 @@ from deepxde.callbacks import EarlyStopping
 @profile
 def run(job: RunningJob) -> dict:
     config = job.parameters
-    dataset = os.environ.get("DEEPHYPER_BENCHMARK_DATASET")
+    dataset = '2D_diff-react_NA_NA'
     DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
     DIR = os.path.dirname(os.path.abspath(__file__))
     stopper_callback = DeepXDEStopperCallback(job)
@@ -94,6 +94,7 @@ problem.add_hyperparameter(
     "initialization",
     default_value="Glorot normal",
 )
+problem.add_hyperparameter((0.1, 0.9), 'loss_weights', default_value=0.5)
 
 
 def evaluate(config):
