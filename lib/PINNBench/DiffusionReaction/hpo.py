@@ -11,9 +11,7 @@ from deephyper.stopper import LCModelStopper
 from deephyper_benchmark.utils.json_utils import array_to_json
 from fvcore.nn import FlopCountAnalysis
 from deephyper_benchmark.integration.torch import count_params
-
-
-
+from deepxde.callbacks import EarlyStopping
 
 
 @profile
@@ -54,6 +52,7 @@ def run(job: RunningJob) -> dict:
             -sum(val_loss[2:]),
             -param_count["num_parameters_train"],
             -duration_batch_inference,
+            -flops
         ]
     else:
         objective = -sum(val_loss)
@@ -83,6 +82,17 @@ problem.add_hyperparameter(
     ["relu", "swish", "tanh", "elu", "selu", "sigmoid"],
     "activation",
     default_value="tanh",
+)
+problem.add_hyperparameter(["True", "False"], "skip_co", default_value="True")
+problem.add_hyperparameter((0, 1.0), "dropout_rate", default_value=0)
+problem.add_hyperparameter(
+    ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
+)
+problem.add_hyperparameter((0, 0.1), "weight_decay", default_value=0)
+problem.add_hyperparameter(
+    ["Glorot normal", "Glorot uniform", "He normal", "He uniform", "zeros"],
+    "initialization",
+    default_value="Glorot normal",
 )
 
 

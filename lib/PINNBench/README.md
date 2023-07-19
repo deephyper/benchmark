@@ -91,6 +91,21 @@ res = diff_react.hpo.run(RunningJob(parameters=config))
 ### Configuration
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
 
+### Supported datasets
+The current available dataset for the enviornment variable `DEEPHYPER_BENCHMARK_DATASET` is `2D_diff-react_NA_NA`. The rest datasets from PDEBench (see [list](https://github.com/iamyixuan/PDEBench-DH/tree/main/pdebench/data_download) )will be supported in the future.
+
+### Supported hyperparameters
+- [x] `num_layers`: number of layers (or other building blocks) in the network.
+- [x] `lr`: learning rate for the optimizer.
+- [x] `num_neurons`: number of neurons per layer.
+- [x] `epochs`: number of maximum epochs for training.
+- [x] `activation`: activation functions.
+- [x] `skip_co`: if using skip connection (residual block).
+- [x] `dropout_rate`: dropout rate.
+- [x] `optimizer`: choices of the optimizer.
+- [x] `weight_decay`: magnitude of L2 regularization.
+- [x] `initialization`: initialization strategy for network weights.
+  
 ### Supported Metadata
 - [x] `num_parameters`: integer value of the number of parameters in the neural network.
 - [x] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
@@ -112,3 +127,4 @@ MOO is supported for Diffusion-reaction PINN benchmark. To enable MOO, set envir
 - Validation boundary and initial condition solution loss.
 - Number of trainable parameters.
 - Batch inference duration.
+- `flops`.
