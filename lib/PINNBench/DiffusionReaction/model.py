@@ -65,19 +65,17 @@ class FNN(NN):
                 )
 
             else:
-                self.linears.append(
-                    nn.Linear(
-                        layer_sizes[i - 1], layer_sizes[i], dtype=config.real(torch)
-                    )
+                linear_module = nn.Linear(
+                    layer_sizes[i - 1], layer_sizes[i], dtype=config.real(torch)
                 )
+                initializer(linear_module.weight)
+                initializer_zero(linear_module.bias)
+                self.linears.append(linear_module)
                 if batch_norm:
                     self.linears.append(
                         nn.BatchNorm1d(layer_sizes[i], dtype=config.real(torch))
                     )
                 self.linears.append(Activation(func=ACTIVATIONS.get(activation)))
-
-                initializer(self.linears[-1].weight)
-                initializer_zero(self.linears[-1].bias)
 
             self.linears.append(nn.Dropout(p=dropout_rate))
 
@@ -106,7 +104,8 @@ class SkipConnection(nn.Module):
         if in_dim != out_dim:
             self.map = nn.Linear(in_dim, out_dim)
 
-        self.block.append(nn.Linear(in_dim, out_dim))
+        linear_module = nn.Linear(in_dim, out_dim)
+        self.block.append(linear_module)
         if batch_norm:
             self.block.append(nn.BatchNorm1d(out_dim))
 
@@ -125,6 +124,5 @@ class SkipConnection(nn.Module):
         if self.in_dim != self.out_dim:
             residual = self.map(residual)
         x = self.block(x)
-        x = self.activation(x)
-        out = self.activation(residual + x)
+        out = self.activation(x) + residual
         return out
