@@ -50,9 +50,9 @@ class FNN(NN):
 
         layer_sizes = [input_dim] + [num_neurons for _ in range(num_layers)]
 
-        if laaf:
+        if laaf and activation is not None:
             activation = f"LAAF-{laaf_scaling_factor} {activation}"
-            
+
         initializer = INITIALIZERS.get(kernel_initializer)
         initializer_zero = INITIALIZERS.get("zeros")
 
