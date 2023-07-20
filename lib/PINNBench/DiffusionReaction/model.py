@@ -1,5 +1,5 @@
 import torch
-import nn as nn
+import torch.nn as nn
 
 from deepxde.nn import NN
 from deepxde.nn import activations, initializers
