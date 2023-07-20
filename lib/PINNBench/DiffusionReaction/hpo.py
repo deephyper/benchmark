@@ -19,26 +19,39 @@ DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0))
 
 # define the search space
 problem = HpProblem()
-problem.add_hyperparameter((5, 20), "num_layers", default_value=5)
-problem.add_hyperparameter((1e-5, 1e-2), "lr", default_value=0.01)
-problem.add_hyperparameter((5, 50), "num_neurons", default_value=5)
+problem.add_hyperparameter((5, 20), "num_layers", default_value=10)
+problem.add_hyperparameter((5, 100), "num_neurons", default_value=10)
 problem.add_hyperparameter((100, 1000), "epochs", default_value=100)
 problem.add_hyperparameter(
-    ["relu", "swish", "tanh", "elu", "selu", "sigmoid"],
+    [None, "elu", "relu", "selu", "sigmoid", "silu", "sin", "swish", "tanh"],
     "activation",
     default_value="tanh",
 )
-problem.add_hyperparameter(["True", "False"], "skip_co", default_value="False")
-problem.add_hyperparameter((0, 1.0), "dropout_rate", default_value=0)
+# Layer wise locally adaptive activation functions
+# https://deepxde.readthedocs.io/en/latest/modules/deepxde.nn.html#deepxde.nn.activations.layer_wise_locally_adaptive
+problem.add_hyperparameter([True, False], "laaf", default_value=False)
+problem.add_hyperparameter((1, 100), "laaf_scaling_factor", default_value=False)
+problem.add_hyperparameter([True, False], "skip_co", default_value="False")
+problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
+
+# Regularization hyperparameters
+problem.add_hyperparameter([None, "l2"], "regularization", default_value=None)
+problem.add_hyperparameter((0.0, 0.1), "weight_decay", default_value=0)
+problem.add_hyperparameter(
+    ["Glorot normal", "Glorot uniform", "He normal", "He uniform", "zeros"],
+    "kernel_initializer",
+    default_value="Glorot normal",
+)
+
+# Optimization hyperparameters
+problem.add_hyperparameter([None, "step"], "decay", default_value=False)
+problem.add_hyperparameter((0.0, 1.0), "decay_step_size", default_value=0.5)
+problem.add_hyperparameter((0.0, 1.0), "decay_gamma", default_value=0.5)
 problem.add_hyperparameter(
     ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
 )
-problem.add_hyperparameter((0, 0.1), "weight_decay", default_value=0)
-problem.add_hyperparameter(
-    ["Glorot normal", "Glorot uniform", "He normal", "He uniform", "zeros"],
-    "initialization",
-    default_value="Glorot normal",
-)
+problem.add_hyperparameter((1e-5, 1e-2), "lr", default_value=0.01)
+
 # Loss weights is tuned only if MOO is activated.
 if DEEPHYPER_BENCHMARK_MOO:
     problem.add_hyperparameter((0.1, 0.9), "loss_weights", default_value=0.5)
@@ -51,6 +64,10 @@ def run(job: RunningJob) -> dict:
 
     if "loss_weights" not in config:
         config["loss_weights"] = 0.5
+
+    # https://github.com/lululxvi/deepxde/blob/master/deepxde/optimizers/pytorch/optimizers.py
+    if config["decay"] == "step":
+        config["decay"] = ("step", config["decay_step_size"], config["decay_gamma"])
 
     stopper_callback = DeepXDEStopperCallback(job)
 
@@ -79,16 +96,28 @@ def run(job: RunningJob) -> dict:
 
     if DEEPHYPER_BENCHMARK_MOO:
         print("Optimizing multiple objectives...")
-        objective_0 = "F" if np.isnan(val_loss[:2]).any() else -sum(val_loss[:2])
-        objective_1 = "F" if np.isnan(val_loss[2:]).any() else -sum(val_loss[2:])
+
+        if np.isnan(val_loss[:2]).any() or np.isinf(val_loss[:2]).any():
+            objective_0 = "F"
+        else:
+            objective_0 = -sum(val_loss[:2])
+
+        if np.isnan(val_loss[2:]).any() or np.isinf(val_loss[2:]).any():
+            objective_1 = "F"
+        else:
+            objective_1 = -sum(val_loss[2:])
+
         objective = [
             objective_0,
             objective_1,
-            -duration_batch_inference,
             -flops,
         ]
     else:
-        objective = "F" if np.isnan(val_loss).any() else -sum(val_loss)
+        objective = (
+            "F"
+            if np.isnan(val_loss).any() or np.isinf(val_loss).any()
+            else -sum(val_loss)
+        )
     metadata = {
         "num_parameters": param_count["num_parameters"],
         "num_parameters_train": param_count["num_parameters_train"],

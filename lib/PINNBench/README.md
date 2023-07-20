@@ -139,6 +139,6 @@ The currently available dataset is `2D_diff-react_NA_NA`. The rest datasets from
 MOO is supported for the `DiffusionReaction` benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO=1`. There are five minimized objectives in this case:
 
 - `objective_0`: Validation PDE loss.
-- `objective_1`: Negative Validation boundary and initial condition solution loss.
+- `objective_1`: Validation boundary and initial condition solution loss.
 - `objective_2`: Batch inference duration (in seconds).
 - `objective_3`: FLOPS from [FVCORE Package](https://github.com/facebookresearch/fvcore/blob/main/docs/flop_count.md).

@@ -1,75 +1,90 @@
 import torch
+import nn as nn
+
 from deepxde.nn import NN
 from deepxde.nn import activations, initializers
 from deepxde import config
 
+
+#LAAF : true false
+# "LAAF-10 relu"
 
 class FNN(NN):
     """Fully-connected neural network."""
 
     def __init__(
         self,
-        layer_sizes,
-        activation,
-        kernel_initializer,
-        skip_connection,
-        dropout_rate,
-        weight_decay,
+        input_dim: int,
+        output_dim: int,
+        num_layers: int = 5,
+        num_neurons: int = 30,
+        activation: str = "elu",
+        kernel_initializer: str = "Glorot normal",
+        skip_co: bool = False,
+        dropout_rate: float = 0.0,
+        regularization: str = None,
+        weight_decay: float = 0.0,
+        laaf: bool = False,
+        laaf_scaling_factor: float = 10,
+
+        **kwargs,
     ):
         super().__init__()
-        self.regularizer = ["l2", weight_decay]
+        self.regularizer = [regularization, weight_decay]
 
-        if isinstance(activation, list):
-            if not (len(layer_sizes) - 1) == len(activation):
-                raise ValueError(
-                    "Total number of activation functions do not match with sum of hidden layers and output layer!"
-                )
-            self.activation = list(map(activations.get, activation))
-        else:
-            self.activation = activations.get(activation)
+        layer_sizes = [input_dim] + [num_neurons for _ in range(num_layers)]
+
+        if laaf:
+            activation = f"LAAF-{laaf_scaling_factor} {activation}"
+        self.activation = activations.get(activation)
         initializer = initializers.get(kernel_initializer)
         initializer_zero = initializers.get("zeros")
 
-        self.linears = torch.nn.ModuleList()
+        self.linears = nn.Sequential()
         for i in range(1, len(layer_sizes)):
-            if skip_connection == "True":
-                self.linears.append(SkipConnection(layer_sizes[i - 1], layer_sizes[i], initializer))
-                
+            if skip_co:
+                self.linears.append(
+                    SkipConnection(
+                        in_dim=layer_sizes[i - 1],
+                        out_dim=layer_sizes[i],
+                        initializer=initializer,
+                        activation=self.activation,
+                    )
+                )
+
             else:
                 self.linears.append(
-                    torch.nn.Linear(
+                    nn.Linear(
                         layer_sizes[i - 1], layer_sizes[i], dtype=config.real(torch)
                     )
                 )
+
                 initializer(self.linears[-1].weight)
                 initializer_zero(self.linears[-1].bias)
-            self.linears.append(torch.nn.Dropout(p=dropout_rate))
+
+            self.linears.append(nn.Dropout(p=dropout_rate))
+        self.linears.append(
+            nn.Linear(layer_sizes[-1], output_dim, dtype=config.real(torch))
+        )
 
     def forward(self, inputs):
         x = inputs
         if self._input_transform is not None:
             x = self._input_transform(x)
-        for j, linear in enumerate(self.linears[:-1]):
-            x = (
-                self.activation[j](linear(x))
-                if isinstance(self.activation, list)
-                else self.activation(linear(x))
-            )
-        x = self.linears[-1](x)
+        x = self.linears(x)
         if self._output_transform is not None:
             x = self._output_transform(inputs, x)
         return x
 
 
-class SkipConnection(torch.nn.Module):
-    def __init__(self, in_dim, out_dim, initializer, hidden_dim=20) -> None:
+class SkipConnection(nn.Module):
+    def __init__(self, in_dim, out_dim, initializer, activation=nn.ReLU) -> None:
         super().__init__()
-        self.map = torch.nn.Linear(in_dim, out_dim)
-        self.F = torch.nn.Linear(out_dim, hidden_dim)
-        self.bn = torch.nn.BatchNorm1d(hidden_dim)
-        self.relu = torch.nn.ReLU()
-        self.out = torch.nn.Linear(hidden_dim, out_dim)
-        self.bn2 = torch.nn.BatchNorm1d(out_dim)
+        self.block = nn.Sequential()
+
+        self.F = nn.Linear(in_dim, out_dim)
+        self.bn = nn.BatchNorm1d(out_dim)
+        self.activation = activation
 
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -77,18 +92,14 @@ class SkipConnection(torch.nn.Module):
 
     def _initialize_weights(self, initializer):
         for m in self.modules():
-            if isinstance(m, torch.nn.Linear):
+            if isinstance(m, nn.Linear):
                 initializer(m.weight.data)
                 m.bias.data.fill_(0.0)
 
     def forward(self, x):
-        if self.in_dim != self.out_dim:
-            x = self.map(x)
         residual = x
         x = self.F(x)
         x = self.bn(x)
-        x = self.relu(x)
-        x = self.out(x)
-        x = self.bn2(x)
+        x = self.activation(x)
         out = residual + x
         return out
