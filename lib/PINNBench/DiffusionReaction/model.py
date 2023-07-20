@@ -52,8 +52,9 @@ class FNN(NN):
 
         if laaf:
             activation = f"LAAF-{laaf_scaling_factor} {activation}"
+            
         initializer = INITIALIZERS.get(kernel_initializer)
-        initializer_zero = initializers.get("zeros")
+        initializer_zero = INITIALIZERS.get("zeros")
 
         self.linears = nn.Sequential()
         for i in range(1, len(layer_sizes)):
@@ -63,8 +64,8 @@ class FNN(NN):
                         in_dim=layer_sizes[i - 1],
                         out_dim=layer_sizes[i],
                         batch_norm=batch_norm,
-                        initializer=INITIALIZERS.get(kernel_initializer),
-                        activation=ACTIVATIONS.get(activation),
+                        kernel_initializer=kernel_initializer,
+                        activation=activation,
                     )
                 )
 
@@ -99,34 +100,34 @@ class FNN(NN):
 
 class SkipConnection(nn.Module):
     def __init__(
-        self, in_dim, out_dim, initializer, batch_norm=False, activation="elu"
+        self,
+        in_dim,
+        out_dim,
+        kernel_initializer="Glorot normal",
+        batch_norm=False,
+        activation="elu",
     ) -> None:
         super(SkipConnection, self).__init__()
-        self.activation = ACTIVATIONS.get(activation)
         self.block = nn.Sequential()
+        self.initializer = INITIALIZERS.get(kernel_initializer)
 
         if in_dim != out_dim:
             self.map = nn.Linear(in_dim, out_dim)
 
         linear_module = nn.Linear(in_dim, out_dim)
+        self.initializer(linear_module.weight)
+        self.initializer_zero(linear_module.bias)
         self.block.append(linear_module)
         if batch_norm:
             self.block.append(nn.BatchNorm1d(out_dim))
+        self.block.append(Activation(func=activation))
 
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self._initialize_weights(initializer)
-
-    def _initialize_weights(self, initializer):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                initializer(m.weight.data)
-                m.bias.data.fill_(0.0)
 
     def forward(self, x):
         residual = x
         if self.in_dim != self.out_dim:
             residual = self.map(residual)
-        x = self.block(x)
-        out = self.activation(x) + residual
+        out = self.block(x) + residual
         return out
