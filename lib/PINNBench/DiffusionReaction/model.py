@@ -82,7 +82,7 @@ class FNN(NN):
                 initializer_zero(self.linears[-1].bias)
 
             self.linears.append(nn.Dropout(p=dropout_rate))
-            
+
         self.linears.append(
             nn.Linear(layer_sizes[-1], output_dim, dtype=config.real(torch))
         )
@@ -105,6 +105,9 @@ class SkipConnection(nn.Module):
         self.activation = ACTIVATIONS.get(activation)
         self.block = nn.Sequential()
 
+        if in_dim != out_dim:
+            self.map = nn.Linear(in_dim, out_dim)
+
         self.block.append(nn.Linear(in_dim, out_dim))
         if batch_norm:
             self.block.append(nn.BatchNorm1d(out_dim))
@@ -121,6 +124,8 @@ class SkipConnection(nn.Module):
 
     def forward(self, x):
         residual = x
+        if self.in_dim != self.out_dim:
+            residual = self.map(residual)
         x = self.block(x)
         x = self.activation(x)
         out = self.activation(residual + x)
