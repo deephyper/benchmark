@@ -90,8 +90,8 @@ def run(job: RunningJob) -> dict:
     metadata = {
         "num_parameters": param_count["num_parameters"],
         "num_parameters_train": param_count["num_parameters_train"],
-        "val_loss": array_to_json(val_loss), # array of 4 elements
-        "test_rmse": test_loss[0],
+        "val_loss": array_to_json(val_loss),  # array of 4 elements
+        "test_rmse": float(test_loss[0]),
         "budget": stopper_callback.budget,
         "stopped": stopper_callback.stopped,
         "lc_train_loss": lc_train_X_json,
