@@ -31,7 +31,7 @@ problem.add_hyperparameter(
 # https://deepxde.readthedocs.io/en/latest/modules/deepxde.nn.html#deepxde.nn.activations.layer_wise_locally_adaptive
 problem.add_hyperparameter([True, False], "laaf", default_value=False)
 problem.add_hyperparameter((1, 100), "laaf_scaling_factor", default_value=10)
-problem.add_hyperparameter([True, False], "skip_co", default_value="False")
+problem.add_hyperparameter([True, False], "skip_co", default_value=False)
 problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
 
 # Regularization hyperparameters
