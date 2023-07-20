@@ -42,7 +42,11 @@ class FNN(NN):
         **kwargs,
     ):
         super().__init__()
-        self.regularizer = [regularization, weight_decay]
+
+        if regularization is None:
+            self.regularizer = None
+        else:
+            self.regularizer = [regularization, weight_decay]
 
         layer_sizes = [input_dim] + [num_neurons for _ in range(num_layers)]
 
