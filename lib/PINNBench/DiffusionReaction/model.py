@@ -14,7 +14,7 @@ INITIALIZERS = initializers
 
 class Activation(nn.Module):
     def __init__(self, func) -> None:
-        super(Activation).__init__()
+        super(Activation, self).__init__()
         self.func = func
 
     def forward(self, x):
@@ -97,7 +97,7 @@ class SkipConnection(nn.Module):
     def __init__(
         self, in_dim, out_dim, initializer, batch_norm=False, activation="elu"
     ) -> None:
-        super().__init__()
+        super(SkipConnection, self).__init__()
         self.activation = ACTIVATIONS.get(activation)
         self.block = nn.Sequential()
 
