@@ -47,7 +47,7 @@ problem.add_hyperparameter(
 # Optimization hyperparameters
 problem.add_hyperparameter(["None", "step"], "decay", default_value="None")
 problem.add_hyperparameter((1, 100), "decay_step_size", default_value=5)
-problem.add_hyperparameter((0.0, 1.0, "log-uniform"), "decay_gamma", default_value=0.1)
+problem.add_hyperparameter((1e-5, 1.0, "log-uniform"), "decay_gamma", default_value=0.1)
 
 problem.add_hyperparameter(
     ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
