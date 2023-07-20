@@ -23,7 +23,7 @@ problem.add_hyperparameter((5, 20), "num_layers", default_value=10)
 problem.add_hyperparameter((5, 100), "num_neurons", default_value=10)
 problem.add_hyperparameter((100, 1000), "epochs", default_value=100)
 problem.add_hyperparameter(
-    [None, "elu", "relu", "selu", "sigmoid", "silu", "sin", "swish", "tanh"],
+    ["None", "elu", "relu", "selu", "sigmoid", "silu", "sin", "swish", "tanh"],
     "activation",
     default_value="tanh",
 )
@@ -35,7 +35,7 @@ problem.add_hyperparameter([True, False], "skip_co", default_value="False")
 problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
 
 # Regularization hyperparameters
-problem.add_hyperparameter([None, "l2"], "regularization", default_value=None)
+problem.add_hyperparameter(["None", "l2"], "regularization", default_value="None")
 problem.add_hyperparameter((0.0, 0.1), "weight_decay", default_value=0)
 problem.add_hyperparameter(
     ["Glorot normal", "Glorot uniform", "He normal", "He uniform", "zeros"],
@@ -44,7 +44,7 @@ problem.add_hyperparameter(
 )
 
 # Optimization hyperparameters
-problem.add_hyperparameter([None, "step"], "decay", default_value=False)
+problem.add_hyperparameter(["None", "step"], "decay", default_value="None")
 problem.add_hyperparameter((0.0, 1.0), "decay_step_size", default_value=0.5)
 problem.add_hyperparameter((0.0, 1.0), "decay_gamma", default_value=0.5)
 problem.add_hyperparameter(
@@ -61,6 +61,10 @@ if DEEPHYPER_BENCHMARK_MOO:
 def run(job: RunningJob) -> dict:
     config = job.parameters.copy()
     dataset = "2D_diff-react_NA_NA"
+
+    for k, v in config.items():
+        if v == "None":
+            config[k] = None
 
     if "loss_weights" not in config:
         config["loss_weights"] = 0.5
