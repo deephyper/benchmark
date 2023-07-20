@@ -5,9 +5,21 @@ from deepxde.nn import NN
 from deepxde.nn import activations, initializers
 from deepxde import config
 
+ACTIVATIONS = activations
+INITIALIZERS = initializers
 
-#LAAF : true false
+# LAAF : true false
 # "LAAF-10 relu"
+
+
+class Activation(nn.Module):
+    def __init__(self, func) -> None:
+        super(Activation).__init__()
+        self.func = func
+
+    def forward(self, x):
+        return self.func(x)
+
 
 class FNN(NN):
     """Fully-connected neural network."""
@@ -20,13 +32,13 @@ class FNN(NN):
         num_neurons: int = 30,
         activation: str = "elu",
         kernel_initializer: str = "Glorot normal",
+        batch_norm: bool = False,
         skip_co: bool = False,
         dropout_rate: float = 0.0,
         regularization: str = None,
         weight_decay: float = 0.0,
         laaf: bool = False,
         laaf_scaling_factor: float = 10,
-
         **kwargs,
     ):
         super().__init__()
@@ -36,8 +48,7 @@ class FNN(NN):
 
         if laaf:
             activation = f"LAAF-{laaf_scaling_factor} {activation}"
-        self.activation = activations.get(activation)
-        initializer = initializers.get(kernel_initializer)
+        initializer = INITIALIZERS.get(kernel_initializer)
         initializer_zero = initializers.get("zeros")
 
         self.linears = nn.Sequential()
@@ -47,8 +58,9 @@ class FNN(NN):
                     SkipConnection(
                         in_dim=layer_sizes[i - 1],
                         out_dim=layer_sizes[i],
-                        initializer=initializer,
-                        activation=self.activation,
+                        batch_norm=batch_norm,
+                        initializer=INITIALIZERS.get(kernel_initializer),
+                        activation=ACTIVATIONS.get(activation),
                     )
                 )
 
@@ -58,11 +70,19 @@ class FNN(NN):
                         layer_sizes[i - 1], layer_sizes[i], dtype=config.real(torch)
                     )
                 )
+                if batch_norm:
+                    self.linears.append(
+                        nn.BatchNorm1d(layer_sizes[i], dtype=config.real(torch))
+                    )
+                self.linears.append(
+                    Activation(func=self.activation.get(self.activation))
+                )
 
                 initializer(self.linears[-1].weight)
                 initializer_zero(self.linears[-1].bias)
 
             self.linears.append(nn.Dropout(p=dropout_rate))
+            
         self.linears.append(
             nn.Linear(layer_sizes[-1], output_dim, dtype=config.real(torch))
         )
@@ -78,13 +98,16 @@ class FNN(NN):
 
 
 class SkipConnection(nn.Module):
-    def __init__(self, in_dim, out_dim, initializer, activation=nn.ReLU) -> None:
+    def __init__(
+        self, in_dim, out_dim, initializer, batch_norm=False, activation="elu"
+    ) -> None:
         super().__init__()
+        self.activation = ACTIVATIONS.get(activation)
         self.block = nn.Sequential()
 
-        self.F = nn.Linear(in_dim, out_dim)
-        self.bn = nn.BatchNorm1d(out_dim)
-        self.activation = activation
+        self.block.append(nn.Linear(in_dim, out_dim))
+        if batch_norm:
+            self.block.append(nn.BatchNorm1d(out_dim))
 
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -98,8 +121,7 @@ class SkipConnection(nn.Module):
 
     def forward(self, x):
         residual = x
-        x = self.F(x)
-        x = self.bn(x)
+        x = self.block(x)
         x = self.activation(x)
-        out = residual + x
+        out = self.activation(residual + x)
         return out

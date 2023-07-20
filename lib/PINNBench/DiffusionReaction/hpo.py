@@ -35,6 +35,7 @@ problem.add_hyperparameter([True, False], "skip_co", default_value=False)
 problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
 
 # Regularization hyperparameters
+problem.add_hyperparameter([True, False], "batch_norm", default_value=False)
 problem.add_hyperparameter(["None", "l2"], "regularization", default_value="None")
 problem.add_hyperparameter((0.0, 0.1), "weight_decay", default_value=0)
 problem.add_hyperparameter(
