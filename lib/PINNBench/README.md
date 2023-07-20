@@ -13,7 +13,7 @@ The currently available problems are
 
 <!-- [Burgers Equation](#burgers-equation) -->
 
-- [Diffusion-reaction Equation](#diffusion-reaction-equation)
+- [Diffusion-reaction Equation](#diffusion-reaction-equation) (Dataset Size: 13 GB)
 
 <!-- 
 ## Burgers Equation
@@ -76,7 +76,7 @@ This benchmark is based on **modified** [`PDEBench`](https://github.com/pdebench
 
 ### Installation
 
-To install the **modified** `PDEBench` and this benchmark
+To install the **modified** `PDEBench` and this benchmark, run:
 ```
 python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/DiffusionReaction');"
 ```
