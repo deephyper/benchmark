@@ -74,9 +74,7 @@ class FNN(NN):
                     self.linears.append(
                         nn.BatchNorm1d(layer_sizes[i], dtype=config.real(torch))
                     )
-                self.linears.append(
-                    Activation(func=self.activation.get(self.activation))
-                )
+                self.linears.append(Activation(func=ACTIVATIONS.get(activation)))
 
                 initializer(self.linears[-1].weight)
                 initializer_zero(self.linears[-1].bias)
