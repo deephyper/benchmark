@@ -79,14 +79,16 @@ def run(job: RunningJob) -> dict:
 
     if DEEPHYPER_BENCHMARK_MOO:
         print("Optimizing multiple objectives...")
+        objective_0 = "F" if np.isnan(val_loss[:2]).any() else -sum(val_loss[:2])
+        objective_1 = "F" if np.isnan(val_loss[2:]).any() else -sum(val_loss[2:])
         objective = [
-            -sum(val_loss[:2]),
-            -sum(val_loss[2:]),
+            objective_0,
+            objective_1,
             -duration_batch_inference,
             -flops,
         ]
     else:
-        objective = -sum(val_loss)
+        objective = "F" if np.isnan(val_loss).any() else -sum(val_loss)
     metadata = {
         "num_parameters": param_count["num_parameters"],
         "num_parameters_train": param_count["num_parameters_train"],
