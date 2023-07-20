@@ -1,28 +1,24 @@
 import os
-
-import numpy as np
 import torch
-from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
-from deephyper.stopper.integration import DeepXDEStopperCallback
-from fvcore.nn import FlopCountAnalysis
+import numpy as np
 from pdebench.models.pinn.train import *
-
-from deephyper_benchmark.integration.torch import count_params
-from deephyper_benchmark.utils.json_utils import array_to_json
-
 from .model import FNN
-
-DEEPHYPER_BENCHMARK_DATASET = os.environ.get(
-    "DEEPHYPER_BENCHMARK_DATASET", "2D_diff-react_NA_NA"
-)
-DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
+from deephyper.problem import HpProblem
+from deephyper.search.hps import CBO
+from deephyper.evaluator import profile, RunningJob
+from deephyper.stopper.integration import DeepXDEStopperCallback
+from deephyper.stopper import LCModelStopper
+from deephyper_benchmark.utils.json_utils import array_to_json
+from fvcore.nn import FlopCountAnalysis
+from deephyper_benchmark.integration.torch import count_params
+from deepxde.callbacks import EarlyStopping
 
 
 @profile
 def run(job: RunningJob) -> dict:
     config = job.parameters
-    dataset = DEEPHYPER_BENCHMARK_DATASET
+    dataset = '2D_diff-react_NA_NA'
+    DEEPHYPER_BENCHMARK_MOO = bool(int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 0)))
     DIR = os.path.dirname(os.path.abspath(__file__))
     stopper_callback = DeepXDEStopperCallback(job)
 
@@ -56,6 +52,7 @@ def run(job: RunningJob) -> dict:
             -sum(val_loss[2:]),
             -param_count["num_parameters_train"],
             -duration_batch_inference,
+            -flops
         ]
     else:
         objective = -sum(val_loss)
@@ -86,6 +83,18 @@ problem.add_hyperparameter(
     "activation",
     default_value="tanh",
 )
+problem.add_hyperparameter(["True", "False"], "skip_co", default_value="False")
+problem.add_hyperparameter((0, 1.0), "dropout_rate", default_value=0)
+problem.add_hyperparameter(
+    ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
+)
+problem.add_hyperparameter((0, 0.1), "weight_decay", default_value=0)
+problem.add_hyperparameter(
+    ["Glorot normal", "Glorot uniform", "He normal", "He uniform", "zeros"],
+    "initialization",
+    default_value="Glorot normal",
+)
+problem.add_hyperparameter((0.1, 0.9), 'loss_weights', default_value=0.5)
 
 
 def evaluate(config):

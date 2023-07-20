@@ -9,10 +9,9 @@ This set of benchmarks seeks to incorporate AutoML workflow into the development
 The currently available problems are 
 
 <!-- [Burgers Equation](#burgers-equation) -->
+<!-- [Burgers Equation](#burgers-equation) -->
 
 - [Diffusion-reaction Equation](#diffusion-reaction-equation)
-
-Information about the size of the datasets used by each benchmark is available at [PDEBench - Download](https://github.com/pdebench/PDEBench/tree/main/pdebench/data_download#downloading-pdebench-datasets-earth_asia).
 
 <!-- 
 ## Burgers Equation
@@ -40,6 +39,7 @@ $$L_f  = \vert \vert \frac{\partial \hat{u}}{\partial t} + \hat{u}\frac{\partial
 
 
 <!-- ### Hyperparameter Search
+<!-- ### Hyperparameter Search
 The objective of this benchmark is to optimize a set of hyperparameters for a feedforward neural network, including `num_layers`, `lr` (the learning rate of the optimizer), `hidden_dim` (the number of neurons in the hidden layers), `alpha` (the PDE loss coefficient), and `activation` (the activation function). The optimization is performed by minimizing the negative total loss value from the validation dataset.
 
 To improve the efficiency of the search, the benchmark uses MCModelStopper to predict the training dynamics and perform early stopping when the predicted subsequent iterations are unlikely to lead to a further improvement in model performance. The maximum budget, `max_b`, for this search is 1000 epochs.
@@ -65,8 +65,7 @@ The default configuration of the PINN.
 
 ```
 result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.47377, 'timestamp_end': 1680036380.2708638, 'num_parameters': 171, 'train_loss': 0.06834503, 'val_loss': 0.06480624, 'test_loss': 0.066540696, 'budget': 1000, 'stopped': False, 'infos_stopped': None}}
-``` 
--->
+``` --> 
 
 
 
@@ -84,7 +83,6 @@ python -c "import deephyper_benchmark as dhb; dhb.install('PINNBench/DiffusionRe
 Run the hyperparameter search
 ```
 import os
-os.environ['DEEPHYPER_BENCHMARK_DATASET'] = '2D_diff-react_NA_NA' # set benchmark dataset
 os.environ['DEEPHYPER_BENCHMARK_MOO'] = '1' # enable multi-objective optimization
 
 import deephyper_benchmark as dhb
@@ -95,18 +93,14 @@ config = diff_react.hpo.problem.default_configuration # get a default config to 
 res = diff_react.hpo.run(RunningJob(parameters=config))
 ```
 
+
+
 ### Configuration
 
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
 
-Different parameters can be set to configure this benchmark.
-
-- Environment variable `DEEPHYPER_BENCHMARK_DATASET` with **default value `2D_diff-react_NA_NA`**. The possible values are:
-    - `2D_diff-react_NA_NA`: ...
-- Environment variable `DEEPHYPER_BENCHMARK_MOO` with value `0` or `1` to select if the task should be run with single or multiple objectives. **Defaults to `0` for single-objective**.
 
 ### Metadata
-
 - [x] `num_parameters`: integer value of the number of parameters in the neural network.
 - [x] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
 - [x] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
@@ -120,11 +114,29 @@ Different parameters can be set to configure this benchmark.
 - [x] `lc_valid_loss`: Same as `lc_train_X` but for validation data.
 - [x] `duration_batch_inference`: average inference time for a single data point.
 
-### Multi-Objective Optimization (MOO)
 
-MOO is supported for the Diffusion-reaction PINN benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO = "1"`. There are 4 objectives under MOO
+### Other details
+#### Supported datasets
+The current available dataset for is `2D_diff-react_NA_NA`. The rest datasets from PDEBench (see [list](https://github.com/iamyixuan/PDEBench-DH/tree/main/pdebench/data_download) )will be supported in the future.
+
+#### Supported hyperparameters
+- [x] `num_layers`: number of layers (or other building blocks) in the network.
+- [x] `lr`: learning rate for the optimizer.
+- [x] `num_neurons`: number of neurons per layer.
+- [x] `epochs`: number of maximum epochs for training.
+- [x] `activation`: activation functions.
+- [x] `skip_co`: if using skip connection (residual block).
+- [x] `dropout_rate`: dropout rate.
+- [x] `optimizer`: choices of the optimizer.
+- [x] `weight_decay`: magnitude of L2 regularization.
+- [x] `initialization`: initialization strategy for network weights.
+- [x] `loss_weights`: weights assigned to the PDE loss.
+  
+#### Multi-objective Optimization (MOO)
+MOO is supported for Diffusion-reaction PINN benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO = "1"`. There are 4 objectives under MOO
 
 - Validation PDE loss.
 - Validation boundary and initial condition solution loss.
-- The number of trainable parameters.
+- Number of trainable parameters.
 - Batch inference duration.
+- `flops`.
