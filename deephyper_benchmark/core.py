@@ -133,7 +133,7 @@ class Benchmark:
         res = 0
 
         # Add path to PYTHONPATH
-        if rname["type"] == "pythonpath":
+        if rcommand["type"] == "pythonpath":
             path = rcommand["path"]
             logging.info(f"Adding {path} to PYTHONPATH")
             sys.path.insert(0, path)
