@@ -1,5 +1,7 @@
 # HPOBench
 
+✅ **Benchmark ready to be used.**
+
 This set of benchmarks provides precomputed evaluations of neural networks for hyperparameter optimization. This is particularly useful to compare optimization schemes without training neural networks for real.
 
 ## Installation

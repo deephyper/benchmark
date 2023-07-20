@@ -29,14 +29,17 @@ lib/
 
 ## Installation
 
-After cloning the repository:
-```python
-pip install -e.
+To install the DeepHyper benchmark suite, run:
+
+```console
+git clone https://github.com/deephyper/benchmark.git deephyper_benchmark
+cd deephyper_benchmark/
+pip install -e "."
 ```
 
 ## Defining a Benchmark
 
-A benchmark is defined as a sub-folder of the `lib/` folder such as `lib/Benchmark-101/`. Then a benchmark folder needs to follow a python package structure and therefore it needs to contain a `__init__.py` file at its root. In addition, a benchmark folder needs to define a `benchmark.py` script which defines its requirements.
+A benchmark is defined as a sub-folder of the `lib/` folder such as `lib/Benchmark-101/`. Then a benchmark folder needs to follow a python package structure and therefore it needs to contain a `__init__.py` file at its root. In addition, a benchmark folder needs to define a `benchmark.py` script that defines its requirements.
 
 General benchmark structure:
 ```
@@ -46,22 +49,23 @@ lib/
         benchmark.py
         data.py
         model.py
-        hpo.py # defines hyperparameter optimization inputs (run-function + problem)
+        hpo.py # Defines hyperparameter optimization inputs (run-function + problem)
+        README.md # Description of the benchmark
 ```
 
 Then to use the benchmark:
 
 ```python
-from deephyper_benchmark import *
+import deephyper_benchmark as dhb
 
-install("Benchmark-101")
+dhb.install("Benchmark-101")
 
-load("Benchmark-101")
+dhb.load("Benchmark-101")
 
 from deephyper_benchmark.lib.benchmark_101.hpo import problem, run
 ```
 
-All `run`-functions (i.e., function returning the objective(s) to be optimized) should follow the **MAXIMIZATION** standard. If a benchmark needs minimization then the negative of the minimized objective can be returned `return -minimized_objective`.
+All `run`-functions (i.e., functions returning the objective(s) to be optimized) should follow the **MAXIMIZATION** standard. If a benchmark needs minimization then the negative of the minimized objective can be returned `return -minimized_objective`.
 
 A benchmark inherits from the `Benchmark` class:
 
@@ -83,7 +87,7 @@ class Benchmark101(Benchmark):
 
 ```
 
-Finally, when testing a benchmark it can be usefull to activate the logging:
+Finally, when testing a benchmark it can be useful to activate the logging:
 
 ```python
 import logging
@@ -95,6 +99,10 @@ logging.basicConfig(
     force=True,
 )
 ```
+
+## Configuration
+
+Benchmarks can sometimes be configured. The configuration can use environment variables with the prefix `DEEPHYPER_BENCHMARK_`.
 
 ## Standard Metadata
 
@@ -117,18 +125,24 @@ The `@profile` decorator should be used on all `run`-functions to collect the `t
 
 ## List of Benchmarks
 
+In the following table:
+
+- $\mathbb{R}$ denotes real parameters.
+- $\mathbb{D}$ denotes discrete parameters.
+- $\mathbb{C}$ denotes categorical parameters.
+
 | Name       | Description                                                                  | Variable(s) Type                             | Objective(s) Type | Multi-Objective | Multi-Fidelity | Evaluation Duration |
 | ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------- | --------------- | -------------- | ------------------- |
-| C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}$                                 | $\mathbb{R}$      | ❌              | ❌             | ms                  |
-| ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | min                 |
-| HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms to min           |
+| C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}^n$                               | $\mathbb{R}$      | ❌              | ❌             | configurable        |
+| ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | min                 |
+| HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms to min           |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
-| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{N}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms                  |
+| PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms                  |
 | Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
-| DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}$                                |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
-| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\text{categorical}^8\times\mathbb{Z}$                               |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
-|                |                                                                          |                                              |                   |                 |                |                     |
+| DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}^n$                              |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
+| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\mathbb{D}\times\mathbb{C}^8$ | $\mathbb{R}$ | ✅              |  ❌            | configurable        |
+|            |                                                                              |                                              |                   |                 |                |                     |
       
       
       

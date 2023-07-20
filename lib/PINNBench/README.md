@@ -1,5 +1,8 @@
 # Physics-informed Neural Networks Benchmark
 
+> **Warning**
+> Work in progress, this benchmark is not yet ready.
+
 Physics-Informed Neural Networks (PINNs) are a class of machine learning models that combine the strengths of neural networks and physics-based modeling. PINNs are used to solve partial differential equations (PDEs) and other physical problems by learning a solution directly from data.
 
 The basic idea behind PINNs is to use a neural network to approximate the solution to a PDE, while also enforcing the underlying physical laws that govern the problem. This is achieved by incorporating the PDE as a constraint in the neural network training process. More details can be found in the [original work](https://arxiv.org/abs/1711.10561).
@@ -8,7 +11,6 @@ This set of benchmarks seeks to incorporate AutoML workflow into the development
 
 The currently available problems are 
 
-<!-- [Burgers Equation](#burgers-equation) -->
 <!-- [Burgers Equation](#burgers-equation) -->
 
 - [Diffusion-reaction Equation](#diffusion-reaction-equation)
@@ -68,7 +70,6 @@ result={'objective': -0.06480624, 'metadata': {'timestamp_start': 1680036315.473
 ``` --> 
 
 
-
 ## Diffusion-reaction Equation
 
 This benchmark is based on **modified** [`PDEBench`](https://github.com/pdebench/PDEBench) and [`DeepXDE`](https://github.com/lululxvi/deepxde). 
@@ -94,13 +95,12 @@ res = diff_react.hpo.run(RunningJob(parameters=config))
 ```
 
 
-
 ### Configuration
 
 It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instructions can be found [here](https://deepxde.readthedocs.io/en/latest/user/installation.html#working-with-different-backends).
 
-
 ### Metadata
+
 - [x] `num_parameters`: integer value of the number of parameters in the neural network.
 - [x] `num_parameters_train`: integer value of the number of **trainable** parameters of the neural network.
 - [x] `budget`: scalar value (float/int) of the budget consumed by the neural network. Therefore the budget should be defined for each benchmark (e.g., number of epochs in general).
@@ -114,12 +114,14 @@ It is necessary to configure `DeepXDE` to use `PyTorch` backend. The instruction
 - [x] `lc_valid_loss`: Same as `lc_train_X` but for validation data.
 - [x] `duration_batch_inference`: average inference time for a single data point.
 
-
 ### Other details
+
 #### Supported datasets
-The current available dataset for is `2D_diff-react_NA_NA`. The rest datasets from PDEBench (see [list](https://github.com/iamyixuan/PDEBench-DH/tree/main/pdebench/data_download) )will be supported in the future.
+
+The currently available dataset is `2D_diff-react_NA_NA`. The rest datasets from PDEBench (see [list](https://github.com/iamyixuan/PDEBench-DH/tree/main/pdebench/data_download) )will be supported in the future.
 
 #### Supported hyperparameters
+
 - [x] `num_layers`: number of layers (or other building blocks) in the network.
 - [x] `lr`: learning rate for the optimizer.
 - [x] `num_neurons`: number of neurons per layer.
@@ -133,10 +135,10 @@ The current available dataset for is `2D_diff-react_NA_NA`. The rest datasets fr
 - [x] `loss_weights`: weights assigned to the PDE loss.
   
 #### Multi-objective Optimization (MOO)
-MOO is supported for Diffusion-reaction PINN benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO = "1"`. There are 4 objectives under MOO
 
-- Validation PDE loss.
-- Validation boundary and initial condition solution loss.
-- Number of trainable parameters.
-- Batch inference duration.
-- `flops`.
+MOO is supported for the `DiffusionReaction` benchmark. To enable MOO, set environment variable `DEEPHYPER_BENCHMARK_MOO=1`. There are five minimized objectives in this case:
+
+- `objective_0`: Validation PDE loss.
+- `objective_1`: Negative Validation boundary and initial condition solution loss.
+- `objective_2`: Batch inference duration (in seconds).
+- `objective_3`: FLOPS from [FVCORE Package](https://github.com/facebookresearch/fvcore/blob/main/docs/flop_count.md).

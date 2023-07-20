@@ -1,5 +1,8 @@
 # FNOBench: Fourier Neural Operator Benchmark
 
+> **Warning**
+> Work in progress, this benchmark is not yet ready.
+
 This is a simplified way of using deephyper to conduct the hyperparameter tuning for the TFNO model to solve the darcy flow. The FNO and the TFNO are models for training neural operators and they can be designed using the neural operator package.
 
 The Deep Hyper is a package that automates the design of neural networks using Hyperparameter Tuning and Neural Architecture Search.

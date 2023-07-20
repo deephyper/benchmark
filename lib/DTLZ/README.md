@@ -1,13 +1,15 @@
 
 # Modified Multiobjective DTLZ Test Suite
 
+✅ **Benchmark ready to be used.**
+
 This module contains objective function implementations of the DTLZ test
 suite, derived from the implementations in
 [ParMOO](https://github.com/parmoo/parmoo).
 
 ------------------------------------------------------------------------------
 
-For further references, the DTLZ test suite was originally proposed in:
+For further reference, the DTLZ test suite was originally proposed in:
 
     Deb, Thiele, Laumanns, and Zitzler. "Scalable test problems for
     evolutionary multiobjective optimization" in Evolutionary Multiobjective
@@ -46,7 +48,7 @@ DTLZ problems
 which are selected by setting the environment variable
 ``DEEPHYPER_BENCHMARK_DTLZ_PROB``.
 
-## Usage
+## Installation 
 
 To use the benchmark follow this example set of instructions:
 
