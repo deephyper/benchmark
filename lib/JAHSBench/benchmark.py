@@ -6,14 +6,16 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class JAHS201Benchmark(Benchmark):
-
     version = "0.0.1"
+    
     requires = {
         "py-pip-requirements": {
+            "step": "install",
             "type": "pip",
-            "name": "-r " + os.path.join(DIR, "REQUIREMENTS.txt"),
+            "args": "install -r " + os.path.join(DIR, "requirements.txt"),
         },
         "bash-install": {
+            "step": "install",
             "type": "cmd",
             "cmd": "cd . && bash " + os.path.join(DIR, "./install.sh"),
         },

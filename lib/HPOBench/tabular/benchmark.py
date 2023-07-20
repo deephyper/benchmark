@@ -6,9 +6,12 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class HPOBenchTabularNavalPropulsion(Benchmark):
-
     version = "0.0.1"
 
     requires = {
-        "bash-install": {"type": "cmd", "cmd": os.path.join(DIR, "install.sh")},
+        "bash-install": {
+            "step": "install",
+            "type": "cmd",
+            "cmd": os.path.join(DIR, "install.sh"),
+        },
     }

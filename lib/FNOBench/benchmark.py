@@ -10,7 +10,8 @@ class FNOBenchmark(Benchmark):
 
     requires = {
         "py-pip-requirements": {
+            "step": "install",
             "type": "pip",
-            "name": "-r " + os.path.join(DIR, "requirements.txt"),
+            "args": "install -r " + os.path.join(DIR, "requirements.txt"),
         },
     }

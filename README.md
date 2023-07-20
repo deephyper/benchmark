@@ -134,14 +134,13 @@ In the following table:
 | Name       | Description                                                                  | Variable(s) Type                             | Objective(s) Type | Multi-Objective | Multi-Fidelity | Evaluation Duration |
 | ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------- | --------------- | -------------- | ------------------- |
 | C-BBO      | Continuous Black-Box Optimization problems.                                  | $\mathbb{R}^n$                               | $\mathbb{R}$      | ❌              | ❌             | configurable        |
+| DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}^n$                              |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
 | ECP-Candle | Deep Neural-Networks on multiple "biological" scales of Cancer related data. | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | min                 |
 | HPOBench   | Hyperparameter Optimization Benchmark.                                       | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms to min           |
+| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\mathbb{D}\times\mathbb{C}^8$ | $\mathbb{R}$ | ✅              |  ❌            | configurable        |
 | LCu        | Learning curve hyperparameter optimization benchmark.                        |                                              |                   |                 |                |                     |
 | LCbench    | Multi-fidelity benchmark without hyperparameter optimization.                | NA                                           | $\mathbb{R}$      | ❌              | ✅             | secondes            |
 | PINNBench  | Physics Informed Neural Networks Benchmark.                                  | $\mathbb{R}\times\mathbb{D}\times\mathbb{C}$ | $\mathbb{R}$      | ✅              | ✅             | ms                  |
-| Toy        | Toy examples for debugging.                                                  |                                              |                   |                 |                |                     |
-| DTLZ       | The modified DTLZ multiobjective test suite.                                 |  $\mathbb{R}^n$                              |  $\mathbb{R}$     | ✅              |  ❌            | configurable        |
-| JAHSBench  | A slightly modified JAHSBench 201 wrapper.                                   |  $\mathbb{R}^2\times\mathbb{D}\times\mathbb{C}^8$ | $\mathbb{R}$ | ✅              |  ❌            | configurable        |
 |            |                                                                              |                                              |                   |                 |                |                     |
       
       

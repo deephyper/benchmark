@@ -1,5 +1,8 @@
 # JAHS Benchmark Suite
 
+> **Warning**
+> Work in progress, this benchmark is not yet ready.
+
 This module contains a DeepHyper wrapper for
  [JAHS-Bench-201](https://github.com/automl/jahs_bench_201).
 

@@ -86,32 +86,35 @@ class Benchmark:
         self.name = None
         self.cwd = None
 
-    def install(self):
-        """Runs the installation of the benchmark."""
+    def install(self) -> int:
+        """Install the benchmark.
 
-        for require_name, require_val in self.requires.items():
+        Returns:
+            int: 0 if the installation is successful, error code otherwise.
+        """
+
+        for rname, rcommand in self.requires.items():
             res = 0
-            if require_val["type"] == "cmd":
-                logging.info(f"running requires[{require_name}]")
-                cmd = require_val["cmd"]
-                res = os.system(f"cd {self.cwd} && {cmd}")
-            elif require_val["type"] == "pip":
-                name = require_val["name"]
-                res = os.system(f"pip install {name}")
+
+            if "install" in rcommand["step"]:
+                res = self.process_requirement(rname, rcommand)
 
             if res != 0:
-                logging.error("installation failed!")
+                logging.error("Installation failed for requirement: {rname}")
+                return res
 
-    def load(self):
+    def load(self) -> int:
         """Loads the benchmark and returns the corresponding Python module."""
 
-        for require_name, require_val in self.requires.items():
-            if require_val["type"] == "pythonpath":
-                path = require_val["path"]
-                logging.info(f"Adding {path} to PYTHONPATH")
-                sys.path.insert(0, path)
-            elif require_val["type"] == "env":
-                os.environ[require_val["key"]] = require_val["value"]
+        for rname, rcommand in self.requires.items():
+            res = 0
+
+            if "load" in rcommand["step"]:
+                res = self.process_requirement(rname, rcommand)
+
+            if res != 0:
+                logging.error("Loading failed for requirement: {rname}")
+                return res
 
         module_name = f"deephyper_benchmark.lib.{self.name}"
         spec = importlib.util.spec_from_file_location(
@@ -123,3 +126,27 @@ class Benchmark:
         self.module = module
 
         return self.module
+
+    def process_requirement(self, rname: str, rcommand: dict) -> int:
+        logging.info(f"Processing requirement: {rname}")
+
+        res = 0
+
+        # Add path to PYTHONPATH
+        if rname["type"] == "pythonpath":
+            path = rcommand["path"]
+            logging.info(f"Adding {path} to PYTHONPATH")
+            sys.path.insert(0, path)
+
+        # Add/Update environment variable to environment.
+        elif rcommand["type"] == "env":
+            os.environ[rcommand["key"]] = rcommand["value"]
+
+        elif rcommand["type"] == "cmd":
+            cmd = rcommand["cmd"]
+            res = os.system(f"cd {self.cwd} && {cmd}")
+        elif rcommand["type"] == "pip":
+            args = rcommand["args"]
+            res = os.system(f"pip {args}")
+
+        return res
