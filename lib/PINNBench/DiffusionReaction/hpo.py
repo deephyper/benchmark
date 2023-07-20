@@ -30,7 +30,7 @@ problem.add_hyperparameter(
 # Layer wise locally adaptive activation functions
 # https://deepxde.readthedocs.io/en/latest/modules/deepxde.nn.html#deepxde.nn.activations.layer_wise_locally_adaptive
 problem.add_hyperparameter([True, False], "laaf", default_value=False)
-problem.add_hyperparameter((1, 100), "laaf_scaling_factor", default_value=False)
+problem.add_hyperparameter((1, 100), "laaf_scaling_factor", default_value=10)
 problem.add_hyperparameter([True, False], "skip_co", default_value="False")
 problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
 
@@ -45,12 +45,13 @@ problem.add_hyperparameter(
 
 # Optimization hyperparameters
 problem.add_hyperparameter(["None", "step"], "decay", default_value="None")
-problem.add_hyperparameter((0.0, 1.0), "decay_step_size", default_value=0.5)
-problem.add_hyperparameter((0.0, 1.0), "decay_gamma", default_value=0.5)
+problem.add_hyperparameter((1, 100), "decay_step_size", default_value=5)
+problem.add_hyperparameter((0.0, 1.0, "log-uniform"), "decay_gamma", default_value=0.1)
+
 problem.add_hyperparameter(
     ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
 )
-problem.add_hyperparameter((1e-5, 1e-2), "lr", default_value=0.01)
+problem.add_hyperparameter((1e-5, 1e-1, "log-uniform"), "lr", default_value=0.01)
 
 # Loss weights is tuned only if MOO is activated.
 if DEEPHYPER_BENCHMARK_MOO:
