@@ -22,7 +22,8 @@ problem = HpProblem()
 problem.add_hyperparameter((5, 20), "num_layers", default_value=10)
 problem.add_hyperparameter((5, 100), "num_neurons", default_value=10)
 problem.add_hyperparameter((100, 1000), "epochs", default_value=100)
-problem.add_hyperparameter(list(ACTIVATIONS.keys()),
+problem.add_hyperparameter(
+    list(ACTIVATIONS.keys()),
     "activation",
     default_value="relu",
 )
@@ -32,7 +33,9 @@ problem.add_hyperparameter((0.0, 0.5), "dropout", default_value=0)
 # Regularization hyperparameters
 problem.add_hyperparameter([True, False], "batch_norm", default_value=False)
 problem.add_hyperparameter(["None", "l2"], "regularization", default_value="None")
-problem.add_hyperparameter((1e-5, 1.0, "log-uniform"), "weight_decay", default_value=0.01)
+problem.add_hyperparameter(
+    (1e-5, 1.0, "log-uniform"), "weight_decay", default_value=0.01
+)
 problem.add_hyperparameter(
     ["Glorot normal", "Glorot uniform", "He normal", "He uniform"],
     "kernel_initializer",
@@ -47,7 +50,9 @@ problem.add_hyperparameter((1e-5, 1.0, "log-uniform"), "decay_gamma", default_va
 problem.add_hyperparameter(
     ["adam", "sgd", "rmsprop", "adamw"], "optimizer", default_value="adam"
 )
-problem.add_hyperparameter((1e-5, 1e-1, "log-uniform"), "learning_rate", default_value=0.01)
+problem.add_hyperparameter(
+    (1e-5, 1e-1, "log-uniform"), "learning_rate", default_value=0.01
+)
 
 # Loss weights is tuned only if MOO is activated.
 if DEEPHYPER_BENCHMARK_MOO:
@@ -73,7 +78,7 @@ def run(job: RunningJob) -> dict:
     if config["decay"] == "step":
         config["decay"] = ("step", config["decay_step_size"], config["decay_gamma"])
 
-    # To avoid error: https://github.com/lululxvi/deepxde/blob/master/deepxde/optimizers/pytorch/optimizers.py#L45C4-L45C4 
+    # To avoid error: https://github.com/lululxvi/deepxde/blob/master/deepxde/optimizers/pytorch/optimizers.py#L45C4-L45C4
     if config["optimizer"] == "adamw":
         config["regularization"] = "l2"
 
@@ -81,13 +86,21 @@ def run(job: RunningJob) -> dict:
 
     error_type = None
     try:
-        val_loss, test_loss, losshistory, model, duration_batch_inference = run_training(
+        (
+            val_loss,
+            test_loss,
+            losshistory,
+            model,
+            duration_batch_inference,
+        ) = run_training(
             net_class=FNN,
             scenario="diff-react",
             epochs=config["epochs"],
             learning_rate=config["learning_rate"],
             model_update=500,
-            root_path=os.path.join(DIR, "../build/PDEBench-DH/pdebench/data/" + dataset),
+            root_path=os.path.join(
+                DIR, "../build/PDEBench-DH/pdebench/data/" + dataset
+            ),
             flnm=dataset + ".h5",
             config=config,
             seed="0000",
@@ -108,7 +121,7 @@ def run(job: RunningJob) -> dict:
             "lc_train_loss": None,
             "lc_val_loss": None,
             "flops": None,
-            "duration_batch_inference": None,  
+            "duration_batch_inference": None,
         }
 
         if DEEPHYPER_BENCHMARK_MOO:
@@ -117,7 +130,7 @@ def run(job: RunningJob) -> dict:
             objective = error_type
 
         return {"objective": objective, "metadata": metadata}
-    
+
     param_count = count_params(model)
     flops = FlopCountAnalysis(model, inputs=(torch.randn(1, 3))).total()
 
