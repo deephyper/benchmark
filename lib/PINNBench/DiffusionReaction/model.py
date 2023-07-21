@@ -8,14 +8,11 @@ from deepxde import config
 ACTIVATIONS = activations
 INITIALIZERS = initializers
 
-# LAAF : true false
-# "LAAF-10 relu"
-
 
 class Activation(nn.Module):
     def __init__(self, func) -> None:
         super(Activation, self).__init__()
-        self.func = func
+        self.func = ACTIVATIONS.get(func) if isinstance(func, str) else func
 
     def forward(self, x):
         return self.func(x)
@@ -39,7 +36,7 @@ class FNN(NN):
         weight_decay: float = 0.0,
         **kwargs,
     ):
-        super().__init__()
+        super(FNN, self).__init__()
 
         if regularization is None:
             self.regularizer = None
@@ -75,7 +72,7 @@ class FNN(NN):
                     self.linears.append(
                         nn.BatchNorm1d(layer_sizes[i], dtype=config.real(torch))
                     )
-                self.linears.append(Activation(func=ACTIVATIONS.get(activation)))
+                self.linears.append(Activation(func=activation))
 
             self.linears.append(nn.Dropout(p=dropout_rate))
 
@@ -103,18 +100,20 @@ class SkipConnection(nn.Module):
         activation="elu",
     ) -> None:
         super(SkipConnection, self).__init__()
-        self.block = nn.Sequential()
-        self.initializer = INITIALIZERS.get(kernel_initializer)
+
+        initializer = INITIALIZERS.get(kernel_initializer)
+        initializer_zero = INITIALIZERS.get("zeros")
 
         if in_dim != out_dim:
             self.map = nn.Linear(in_dim, out_dim)
 
-        linear_module = nn.Linear(in_dim, out_dim)
-        self.initializer(linear_module.weight)
-        self.initializer_zero(linear_module.bias)
+        self.block = nn.Sequential()
+        linear_module = nn.Linear(in_dim, out_dim, dtype=config.real(torch))
+        initializer(linear_module.weight)
+        initializer_zero(linear_module.bias)
         self.block.append(linear_module)
         if batch_norm:
-            self.block.append(nn.BatchNorm1d(out_dim))
+            self.block.append(nn.BatchNorm1d(out_dim, dtype=config.real(torch)))
         self.block.append(Activation(func=activation))
 
         self.in_dim = in_dim
