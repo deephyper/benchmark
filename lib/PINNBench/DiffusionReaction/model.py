@@ -2,20 +2,32 @@ import torch
 import torch.nn as nn
 
 from deepxde.nn import NN
-from deepxde.nn import activations, initializers
+from deepxde.nn import initializers
 from deepxde import config
 
-ACTIVATIONS = activations
 INITIALIZERS = initializers
 
-
-class Activation(nn.Module):
-    def __init__(self, func) -> None:
-        super(Activation, self).__init__()
-        self.func = ACTIVATIONS.get(func) if isinstance(func, str) else func
+class Sin(nn.Module):
+    def __init__(self):
+        super(Sin, self).__init__()
 
     def forward(self, x):
-        return self.func(x)
+        return torch.sin(x)
+
+ACTIVATIONS = {
+        # "id": nn.Identity,
+        "elu": nn.ELU,
+        "relu": nn.ReLU,
+        "selu": nn.SELU,
+        "sigmoid": nn.Sigmoid,
+        "silu": nn.SiLU, # same as swish
+        "sin": Sin, 
+        "tanh": nn.Tanh,
+        "hardswish": nn.Hardswish,
+        "leakyrelu": nn.LeakyReLU,
+        "mish": nn.Mish,
+        "softplus": nn.Softplus,
+}
 
 
 class FNN(NN):
@@ -33,7 +45,7 @@ class FNN(NN):
         skip_co: bool = False,
         dropout_rate: float = 0.0,
         regularization: str = None,
-        weight_decay: float = 0.0,
+        weight_decay: float = 0.01,
         **kwargs,
     ):
         super(FNN, self).__init__()
@@ -72,7 +84,9 @@ class FNN(NN):
                     self.linears.append(
                         nn.BatchNorm1d(layer_sizes[i], dtype=config.real(torch))
                     )
-                self.linears.append(Activation(func=activation))
+                
+                if activation != "id":
+                    self.linears.append(ACTIVATIONS.get(activation)())
 
             self.linears.append(nn.Dropout(p=dropout_rate))
 
@@ -101,27 +115,40 @@ class SkipConnection(nn.Module):
     ) -> None:
         super(SkipConnection, self).__init__()
 
+        self.in_dim = in_dim
+        self.out_dim = out_dim
+
         initializer = INITIALIZERS.get(kernel_initializer)
         initializer_zero = INITIALIZERS.get("zeros")
 
-        if in_dim != out_dim:
+        if self.in_dim != self.out_dim:
             self.map = nn.Linear(in_dim, out_dim)
+            initializer(self.map.weight)
+            initializer_zero(self.map.bias)
 
         self.block = nn.Sequential()
+        
         linear_module = nn.Linear(in_dim, out_dim, dtype=config.real(torch))
         initializer(linear_module.weight)
         initializer_zero(linear_module.bias)
         self.block.append(linear_module)
+
         if batch_norm:
             self.block.append(nn.BatchNorm1d(out_dim, dtype=config.real(torch)))
-        self.block.append(Activation(func=activation))
 
-        self.in_dim = in_dim
-        self.out_dim = out_dim
+        if activation != "id":
+            self.block.append(ACTIVATIONS.get(activation)())
+        
+        if activation != "id":
+            self.act = ACTIVATIONS.get(activation)()
+        else:
+            self.act = None
 
     def forward(self, x):
         residual = x
         if self.in_dim != self.out_dim:
             residual = self.map(residual)
         out = self.block(x) + residual
+        if self.act is not None:
+            out = self.act(out)
         return out
