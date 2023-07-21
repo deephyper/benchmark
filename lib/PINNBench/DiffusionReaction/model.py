@@ -37,8 +37,6 @@ class FNN(NN):
         dropout_rate: float = 0.0,
         regularization: str = None,
         weight_decay: float = 0.0,
-        laaf: bool = False,
-        laaf_scaling_factor: float = 10,
         **kwargs,
     ):
         super().__init__()
@@ -49,9 +47,6 @@ class FNN(NN):
             self.regularizer = [regularization, weight_decay]
 
         layer_sizes = [input_dim] + [num_neurons for _ in range(num_layers)]
-
-        if laaf and activation is not None:
-            activation = f"LAAF-{laaf_scaling_factor} {activation}"
 
         initializer = INITIALIZERS.get(kernel_initializer)
         initializer_zero = INITIALIZERS.get("zeros")
