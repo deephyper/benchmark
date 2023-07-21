@@ -65,7 +65,10 @@ def run(job: RunningJob) -> dict:
             config[k] = None
 
     if "loss_weights" not in config:
-        config["loss_weights"] = 0.5
+        lw = 0.5
+    else:
+        lw = config["loss_weights"]
+    config["loss_weights"] = np.array([lw, lw, 1 - lw, 1 - lw, 1 - lw, 1 - lw])
 
     # https://github.com/lululxvi/deepxde/blob/master/deepxde/optimizers/pytorch/optimizers.py
     if config["decay"] == "step":
@@ -102,12 +105,12 @@ def run(job: RunningJob) -> dict:
         if np.isnan(val_loss[:2]).any() or np.isinf(val_loss[:2]).any():
             objective_0 = "F"
         else:
-            objective_0 = -sum(val_loss[:2])
+            objective_0 = -(val_loss[:2] / config["loss_weights"][:2]).sum()
 
         if np.isnan(val_loss[2:]).any() or np.isinf(val_loss[2:]).any():
             objective_1 = "F"
         else:
-            objective_1 = -sum(val_loss[2:])
+            objective_1 = -(val_loss[2:] / config["loss_weights"][2:]).sum()
 
         objective = [
             objective_0,
@@ -118,7 +121,7 @@ def run(job: RunningJob) -> dict:
         objective = (
             "F"
             if np.isnan(val_loss).any() or np.isinf(val_loss).any()
-            else -sum(val_loss)
+            else -(val_loss / config["loss_weights"]).sum()
         )
     metadata = {
         "num_parameters": param_count["num_parameters"],
