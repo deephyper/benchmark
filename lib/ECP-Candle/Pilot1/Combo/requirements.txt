@@ -1,3 +1,5 @@
 astropy
 patsy
 statsmodels
+numpy<=1.22
+numba~=0.55.2
