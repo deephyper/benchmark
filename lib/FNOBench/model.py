@@ -210,13 +210,13 @@ class Trainer:
             loader = validation_loader
             loader_name = ""
             errors = self.evaluate(
-                model, training_loss, loader, output_encoder, log_prefix=loader_name
+                model, eval_losses, loader, output_encoder, log_prefix=loader_name
             )
 
             for loss_name, loss_value in errors.items():
                 msg += f", {loss_name}={loss_value:.4f}"
                 values_to_log[loss_name] = loss_value
-            history["val_loss"].append(values_to_log["_l2"])
+            history["val_loss"].append(values_to_log[loss_name])
             if regularizer:
                 avg_lasso_loss /= self.n_epochs
                 msg += f", avg_lasso={avg_lasso_loss:.5f}"
