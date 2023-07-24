@@ -1,5 +1,5 @@
 astropy
 patsy
 statsmodels
-numpy<=1.22
+numpy<=1.22 # for compatibility with numba.cuda
 numba~=0.55.2
