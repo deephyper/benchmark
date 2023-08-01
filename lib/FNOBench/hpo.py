@@ -51,7 +51,6 @@ problem.add_hyperparameter([16], "data_train_resolution", default_value=16)
 problem.add_hyperparameter([True], "data_positional_encoding", default_value=True)
 problem.add_hyperparameter([True], "data_encode_input", default_value=True)
 problem.add_hyperparameter([False], "data_encode_output", default_value=False)
-problem.add_hyperparameter([True], "verbose", default_value=True)
 problem.add_hyperparameter([666], "distributed_seed", default_value=666)
 problem.add_hyperparameter([3], "data_channels", default_value=3)
 # implementation is about how the factorization is done,
@@ -70,8 +69,6 @@ problem.add_hyperparameter(
 problem.add_hyperparameter(
     ["soft-gating", "identity", "linear"], "skip", default_value="linear"
 )
-# type of training loss to use either H1Loss or Lploss
-problem.add_hyperparameter(["h1", "l2"], "opt_training_loss", default_value="h1")
 # the scheduler_patience, used for only  ReduceLROnPlateau, we're keeping it constant
 problem.add_hyperparameter([5], "opt_scheduler_patience", default_value=5)
 # type of scheduler to use
@@ -103,6 +100,5 @@ def run(config):
             "duration_train": sum(history["train_time"]),
         },
     }
-    score["objective"] = [score["objective"], -score["metadata"]["train_err"]]
 
     return score
