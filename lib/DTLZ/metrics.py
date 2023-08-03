@@ -16,7 +16,7 @@ class PerformanceEvaluator:
      * `nadirPt()` calculates the Nadir point for the current problem,
      * `numPts(pts)` calculates the number of solution points that dominate
        the Nadir point, and
-     * `rmse(pts)` calculates the RMSE where the error in each point is
+     * `gd(pts)` calculates the RMSE where the error in each point is
        approximated by the 2-norm distance to the nearest solution point.
 
     """
@@ -83,15 +83,41 @@ class PerformanceEvaluator:
             pareto_pts = pareto_front(pts)
         return sum([all(fi <= self.nadirPt()) for fi in pareto_pts])
 
-    def rmse(self, pts):
-        """ Calculate the RMSE for a set of objective points.
+    def gd1(self, pts):
+        """ Calculate the p=1 generational distance for a given solution set.
 
         Args:
             pts (numpy.ndarra): A 2d array of objective values.
                 Each row is an objective value in the solution set.
 
         Returns:
-            float: The RMSE over all points in pts.
+            float: The p=1 generational distance over all points in pts.
+
+        """
+
+        if np.any(pts < 0):
+            pareto_pts = pareto_front(-pts)
+        else:
+            pareto_pts = pareto_front(pts)
+        if self.p_num == "1":
+            dists = self._dtlz1Dist(pareto_pts)
+        elif self.p_num in ["2", "3", "4", "5", "6"]:
+            dists = self._dtlz2Dist(pareto_pts)
+        elif self.p_num == "7":
+            dists = self._dtlz7Dist(pareto_pts)
+        else:
+            raise ValueError(f"DTLZ{self.p_num} is not a valid problem")
+        return np.sum(dists) / len(dists)
+
+    def gd2(self, pts):
+        """ Calculate the p=2 generational distance for a given solution set.
+
+        Args:
+            pts (numpy.ndarra): A 2d array of objective values.
+                Each row is an objective value in the solution set.
+
+        Returns:
+            float: The p=2 generational distance over all points in pts.
 
         """
 
@@ -184,14 +210,14 @@ if __name__ == "__main__":
     assert abs(dtlz1_eval.hypervolume(s1) - .0625) < 1.0e-8
     assert np.all(np.abs(dtlz1_eval.nadirPt() - 0.5) < 1.0e-8)
     assert dtlz1_eval.numPts(s1) == 3
-    assert abs(dtlz1_eval.rmse(s1)) < 1.0e-8
+    assert abs(dtlz1_eval.gd(s1)) < 1.0e-8
 
     assert abs(dtlz2_eval.hypervolume(s2) - (1.5 - np.sqrt(2))) < 1.0e-8
     assert np.all(np.abs(dtlz2_eval.nadirPt() - 1) < 1.0e-8)
     assert dtlz2_eval.numPts(s2) == 3
-    assert abs(dtlz2_eval.rmse(s2)) < 1.0e-8
+    assert abs(dtlz2_eval.gd(s2)) < 1.0e-8
 
     assert abs(dtlz7_eval.hypervolume(s7)) < 1.0e-8
     assert np.all(np.abs(dtlz7_eval.nadirPt() - np.array([1, 4])) < 1.0e-8)
     assert dtlz7_eval.numPts(s7) == 2
-    assert abs(dtlz7_eval.rmse(s7)) < 1.0e-8
+    assert abs(dtlz7_eval.gd(s7)) < 1.0e-8
