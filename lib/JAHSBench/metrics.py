@@ -58,9 +58,23 @@ class PerformanceEvaluator:
     def nadirPt(self):
         """ Calculate the Nadir point for the given problem definition. """
 
-        if self.p_name in ["cifar10", "colorectal_history", "fashion_mnist"]:
+        if self.p_name in ["fashion_mnist"]:
             nadir = np.ones(self.nobjs)
-            nadir[0] = 0
+            nadir[0] = 88
+            if self.nobjs > 1:
+                nadir[1] = 10.0
+                nadir[2] = 100.0
+            return nadir
+        elif self.p_name in ["cifar10"]:
+            nadir = np.ones(self.nobjs)
+            nadir[0] = 50
+            if self.nobjs > 1:
+                nadir[1] = 10.0
+                nadir[2] = 100.0
+            return nadir
+        elif self.p_name in ["colorectal_history"]:
+            nadir = np.ones(self.nobjs)
+            nadir[0] = 81
             if self.nobjs > 1:
                 nadir[1] = 10.0
                 nadir[2] = 100.0
