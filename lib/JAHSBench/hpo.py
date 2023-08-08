@@ -9,10 +9,11 @@ from . import model
 
 # Read in whether to do single- or multi-objectives
 multiobj = int(os.environ.get("DEEPHYPER_BENCHMARK_MOO", 1))
+prob_name = os.environ.get("DEEPHYPER_BENCHMARK_JAHS_PROB", "fashion_mnist")
 
 # Create problem
 problem = HpProblem()
-jahs_obj = model.jahs_bench()
+jahs_obj = model.jahs_bench(dataset=prob_name)
 # 2 continuous hyperparameters
 problem.add_hyperparameter((1.0e-3, 1.0), "LearningRate")
 problem.add_hyperparameter((1.0e-5, 1.0e-3), "WeightDecay")

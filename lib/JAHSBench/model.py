@@ -21,7 +21,8 @@ class jahs_bench:
         import os
 
         ### JAHS bench settings ###
-        MODEL_PATH = os.path.dirname(os.path.abspath(__file__))
+        MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  "jahs_bench_data")
         # Define the benchmark
         self.benchmark = Benchmark(
                 task=dataset,
