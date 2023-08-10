@@ -9,9 +9,9 @@ This module contains a DeepHyper wrapper for
 JAHSBench implements a random forest surrogate model, trained on real-world
 performance data for neural networks trained on three standard benchmark
 problems:
- - ``cifar10`` (default),
- - ``colorectal_history``, and
- - ``fashion_mnist``.
+ - ``cifar10`` 
+ - ``colorectal_history``
+ - ``fashion_mnist`` (**default**)
 
 Using these models as surrogates for the true performance, we can use this
 benchmark problem to study the performance of AutoML techniques on joint
