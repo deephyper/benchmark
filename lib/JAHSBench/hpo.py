@@ -15,8 +15,8 @@ prob_name = os.environ.get("DEEPHYPER_BENCHMARK_JAHS_PROB", "fashion_mnist")
 problem = HpProblem()
 jahs_obj = model.jahs_bench(dataset=prob_name)
 # 2 continuous hyperparameters
-problem.add_hyperparameter((1.0e-3, 1.0), "LearningRate")
-problem.add_hyperparameter((1.0e-5, 1.0e-3), "WeightDecay")
+problem.add_hyperparameter((1e-3, 1.0, "log-uniform"), "LearningRate")
+problem.add_hyperparameter((1e-5, 1e-3, "log-uniform"), "WeightDecay")
 # 2 categorical hyperparameters
 problem.add_hyperparameter(["ReLU", "Hardswish", "Mish"], "Activation")
 problem.add_hyperparameter(["on", "off"], "TrivialAugment")
@@ -26,9 +26,9 @@ for i in range(1, 7):
 # 1 integer hyperparameter number of training epochs (1 to 200)
 problem.add_hyperparameter((1, 200), "nepochs")
 
+
 @profile
 def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
-
     config = job.parameters
     result = jahs_obj(config)
 
@@ -40,10 +40,10 @@ def run(job: RunningJob, sleep=False, sleep_scale=0.01) -> dict:
     dh_data["metadata"] = result
     if multiobj:
         dh_data["objective"] = [
-                                result["valid-acc"],
-                                -result["latency"],
-                                -result['size_MB']
-                               ]
+            result["valid-acc"],
+            -result["latency"],
+            -result["size_MB"],
+        ]
     else:
         dh_data["objective"] = result["valid-acc"]
     return dh_data
