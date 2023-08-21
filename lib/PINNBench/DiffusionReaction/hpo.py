@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from deephyper.evaluator import RunningJob, profile
 from deephyper.problem import HpProblem
-from deephyper.stopper.integration import DeepXDEStopperCallback
+from deephyper.stopper.integration.deepxde import DeepXDEStopperCallback
 from deepxde.callbacks import EarlyStopping
 from fvcore.nn import FlopCountAnalysis
 from pdebench.models.pinn.train import run_training
