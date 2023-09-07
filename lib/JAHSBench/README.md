@@ -9,9 +9,9 @@ This module contains a DeepHyper wrapper for
 JAHSBench implements a random forest surrogate model, trained on real-world
 performance data for neural networks trained on three standard benchmark
 problems:
- - ``cifar10`` (default),
- - ``colorectal_history``, and
- - ``fashion_mnist``.
+ - ``cifar10`` 
+ - ``colorectal_history``
+ - ``fashion_mnist`` (**default**)
 
 Using these models as surrogates for the true performance, we can use this
 benchmark problem to study the performance of AutoML techniques on joint
@@ -55,6 +55,21 @@ For further information, see:
     }
 ```
 
+## Installation
+
+To install this benchmark the following command can be run:
+```
+python -c "import deephyper_benchmark as dhb; dhb.install('JAHSBench');"
+```
+
+## Configuration
+
+...
+
+## Metadata
+
+...
+
 ## Usage
 
 To use the benchmark follow this example set of instructions:
@@ -63,8 +78,6 @@ To use the benchmark follow this example set of instructions:
 
 import deephyper_benchmark as dhb
 
-# Install JAHS-bench-201 and fetch data
-dhb.install("JAHSBench")
 
 # Load JAHS-bench-201
 dhb.load("JAHSBench")
@@ -110,3 +123,5 @@ evaluator = metrics.PerformanceEvaluator()
 hv = evaluator.hypervolume(res)
 
 ```
+
+## M
