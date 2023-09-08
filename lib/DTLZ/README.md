@@ -101,7 +101,7 @@ To evaluate these two metrics, we use:
     for $i=1,\ldots, n$.
     Then the GD+ is $\sum_{i} D^+(F_i, Y_i) / n$.
     Where $D^+$ denotes the improved distance function
-    $D^+(F, Y) = \sqrt{\sum_{j=1}^{d} \max(F_j - Y_j, 0)^2}$.
+    $D^+(F, Y) = \sqrt{\sum_{j=1,...,d} \max(F_j - Y_j, 0)^2}$.
     **Note that this metric may not increase monotonically. Additionally,
     it may be impossible to calculate for an arbitrary blackbox function,
     and can only be calculated here since the solution known and easily
