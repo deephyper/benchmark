@@ -76,14 +76,14 @@ to configure the JAHS-Bench problem:
 ## Metadata
 
 In addition to DeepHyper's standard metadata (timestamps), the following metadata
-is produced by JAHS-Bench-201, and recorded by DeepHyper
--``m:size_MB``,
--``m:runtime``,
--``m:latency``,
--``m:FLOPS``,
--``m:valid-acc``,
--``m:train-acc``, and
--``m:test-acc``.
+is produced by JAHS-Bench-201, and recorded by DeepHyper:
+- ``m:size_MB``,
+- ``m:runtime``,
+- ``m:latency``,
+- ``m:FLOPS``,
+- ``m:valid-acc``,
+- ``m:train-acc``, and
+- ``m:test-acc``.
 
 The ``valid-acc`` is used to compute the objective in the single objective
 case.
