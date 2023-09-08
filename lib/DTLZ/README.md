@@ -101,7 +101,7 @@ To evaluate these two metrics, we use:
     for $i=1,\ldots, n$.
     Then the GD+ is $\sum_{i} D^+(F_i, Y_i) / n$.
     Where $D^+$ denotes the improved distance function
-    $D^+(F, Y) = ||\max(F_j - Y_j, 0)||_2^2$, where the "max" is taken
+    $D^+(F, Y) = ||\max(F - Y, 0)||_2^2$, where the "max" is taken
     componentwise.
     **Note that this metric may not increase monotonically. Additionally,
     it may be impossible to calculate for an arbitrary blackbox function,
