@@ -47,7 +47,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
     ff = [-fi for fi in dtlz_obj(x)]
 
     if DEEPHYPER_BENCHMARK_FAILURES:
-        if any(xi < 0.25 for xi in x):
+        if any(xi < 0.25 for xi in x[nb_obj-1:]):
             ff = ["F" for _ in ff]
 
     return ff
