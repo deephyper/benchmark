@@ -15,7 +15,12 @@ dtlz_class_ptr = getattr(dtlz, dtlz_prob_name)
 # Read problem dims and definition (or read from ENV)
 nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 nb_obj = int(os.environ.get("DEEPHYPER_BENCHMARK_NOBJS", 2))
-soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.6))
+if dtlz_prob_name in ["dtlz1", "dtlz2", "dtlz3", "dtlz4", "dtlz5"]:
+    soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.5))
+elif dtlz_prob_name in ["dtlz6", "dtlz7"]:
+    soln_offset = float(os.environ.get("DEEPHYPER_BENCHMARK_DTLZ_OFFSET", 0.0))
+else:
+    raise ValueError(f"Invalid problem {dtlz_prob_name}")
 domain = (0.0, 1.0)
 
 # Failures

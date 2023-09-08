@@ -40,10 +40,8 @@ DTLZ problems
  * ``dtlz3``,
  * ``dtlz4``,
  * ``dtlz5``,
- * ``dtlz6``,
- * ``dtlz7``,
- * ``dtlz8``, and
- * ``dtlz9``
+ * ``dtlz6``, and
+ * ``dtlz7``
 
 which are selected by setting the environment variable
 ``DEEPHYPER_BENCHMARK_DTLZ_PROB``.
@@ -74,7 +72,18 @@ res = dtlz.hpo.run(RunningJob(parameters=config))
 
 ## Configuration
 
+To configure the problem, set the following:
+
+- Environment variable `DEEPHYPER_BENCHMARK_PROB` with a value of `1`, `2`, ... `7` to select the DTLZ problem to run. Defaults to `2`.
+- Environment variable `DEEPHYPER_BENCHMARK_NDIMS` with an integer value to set the number of input variables. Defaults to `5`.
+- Environment variable `DEEPHYPER_BENCHMARK_NOBJS` with an integer value to set the number of objectives. Defaults to `2`
+- Environment variable `DEEPHYPER_BENCHMARK_OFFSET` with a value between `0.0` and `1.0` to select the offset of the solution to the DTLZ problem. Defaults to `0.5` for DTLZ1, ..., DTLZ5 and `0.0` for DTLZ6 and DTLZ7. One may wish to adjust this value when comparing against deterministic blackbox solvers, which may sample the center and boundaries of the input space on specific schedules.
 - Environment variable `DEEPHYPER_BENCHMARK_FAILURES` with value `0` or `1` to activate or deactivate failures. Defaults to `0`.
+
+## Metadata
+
+Since these problems are analytic, there is no metadata for this problem
+beyond the standard DeepHyper metadata (timestamp information).
 
 ## Evaluating Results
 
@@ -86,10 +95,17 @@ Typically, one should evaluate on two orthogonal bases:
     by these solutions?
 
 To evaluate these two metrics, we use:
- 1. RMSE: Let $F_i$ be a point in the solution set returned by a solver,
+ 1. Improved generational distance (GD+): Let $F_i$ be a point in the solution
+    set returned by a solver,
     and let $Y_i$ be the nearest point to $F_i$ on the true Pareto front,
     for $i=1,\ldots, n$.
-    Then the RMSE is $\sqrt{\sum_{i} (F_i - Y_i)^2 / n}$.
+    Then the GD+ is $\sum_{i} D^+(F_i, Y_i) / n$.
+    Where $D^+$ denotes the improved distance function
+    $D^+(F, Y) = \sqrt{\sum_{j=1}^d \max(F_j - Y_j, 0)^2}$.
+    **Note that this metric may not increase monotonically. Additionally,
+    it may be impossible to calculate for an arbitrary blackbox function,
+    and can only be calculated here since the solution known and easily
+    expressed algebraically for all of the DTLZ problems.**
  2. Hypervolume dominated: Let $F_i$ be defined as above, and let $R$ be
     a pre-determined reference point such that all $F_i$ dominate $R$.
     Then the hypervolume is given by the volume of the union of all
@@ -108,6 +124,6 @@ to compute and many researchers will use the hypervolume with an overly
 pessimistic reference point as a proxy for both quality and diversity.
 However, in general, the hypervolume tends to promote diversity over quality.
 For the DTLZ problems, since the shape of the true Pareto front is known,
-we can calculate each of these metrics, and both the ``rmse(results)`` and
+we can calculate each of these metrics, and both the ``gdPlus(results)`` and
 ``hypervolume(results)`` functions are implemented in the ``dtlz.metrics``
 module.

@@ -9,9 +9,9 @@ This module contains a DeepHyper wrapper for
 JAHSBench implements a random forest surrogate model, trained on real-world
 performance data for neural networks trained on three standard benchmark
 problems:
+ - ``fashion_mnist`` (**default**)
  - ``cifar10`` 
  - ``colorectal_history``
- - ``fashion_mnist`` (**default**)
 
 Using these models as surrogates for the true performance, we can use this
 benchmark problem to study the performance of AutoML techniques on joint
@@ -38,6 +38,8 @@ JAHS-Bench-201's surrogates. By default, this is 1% of the true runtime.
 
 The benchmark can be run to tune a single objective (``valid-acc``) or
 three objectives (``valid-acc``, ``latency``, and ``size_MB``).
+*Note that in the original JAHS-Bench-201 benchmark, there are only 2
+objectives and ``size_MB`` is not included as an objective.*
 
 For further information, see:
 
@@ -64,11 +66,30 @@ python -c "import deephyper_benchmark as dhb; dhb.install('JAHSBench');"
 
 ## Configuration
 
-...
+Prior to initialize the problem, set the following environment variables
+to configure the JAHS-Bench problem:
+- ``DEEPHYPER_BENCHMARK_MOO`` to `0` for single objective runs or `1` for
+  multiobjective runs. Defaults to `1`.
+- ``DEEPHYPER_BENCHMARK_JAHS_PROB`` to one of the following:
+  `fashion_mnist` (default), `cifar10`, or `colorectal_history`. 
 
 ## Metadata
 
-...
+In addition to DeepHyper's standard metadata (timestamps), the following metadata
+is produced by JAHS-Bench-201, and recorded by DeepHyper
+-``m:size_MB``,
+-``m:runtime``,
+-``m:latency``,
+-``m:FLOPS``,
+-``m:valid-acc``,
+-``m:train-acc``, and
+-``m:test-acc``.
+
+The ``valid-acc`` is used to compute the objective in the single objective
+case.
+Additionally, the negative values of the ``latency`` and ``size_MB`` are
+used in the multiobjective case.
+All metadata is recorded regardless of the case.
 
 ## Usage
 
@@ -110,11 +131,23 @@ See their
 [Evaluation Protocol](https://automl.github.io/jahs_bench_201/evaluation_protocol)
 for more details.
 
-For multiobjective runs, we recommend a reference point of 
-``(val_acc = 0, latency=10, size_MB=100)``, as discussed in 
+**For multiobjective problems:**
+In their original benchmark, no recommended reference point is given,
+as discussed in
 [this GitHub issue](https://github.com/automl/jahs_bench_201/issues/19).
-
-To evaluate hypervolume with this reference point, use our metrics
+Since we have already modified the original problem, we have taken the
+liberty of assigning a reference point.
+This reference point was chosen to include all true solutions for the
+``latency`` and ``size_MB`` objectives.
+These values were chosen by observing the true Pareto front for the raw data.
+However, we have purposefully created a lower bound on the "interesting range"
+for the ``valid-acc`` objective, which is higher than it was before.
+In particular, no accuracies less than 95% will be considered when
+computing hypervolume scores for the Fashion MNIST or CIFAR-10 datasets,
+and no accuracies less than 98% are considered for the colorectal screening
+dataset.
+To evaluate hypervolume with these reference points, use our metrics as
+shown below
 
 ```python
 
@@ -123,5 +156,3 @@ evaluator = metrics.PerformanceEvaluator()
 hv = evaluator.hypervolume(res)
 
 ```
-
-## M
