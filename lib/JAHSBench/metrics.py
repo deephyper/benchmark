@@ -69,17 +69,17 @@ class PerformanceEvaluator:
             return rp
         elif self.p_name in ["cifar10"]:
             rp = np.ones(self.nobjs)
-            rp[0] = -50
+            rp[0] = -90
             if self.nobjs > 1:
-                rp[1] = 10.0
-                rp[2] = 100.0
+                rp[1] = 4.0
+                rp[2] = 0.0
             return rp
-        elif self.p_name in ["colorectal_history"]:
+        elif self.p_name in ["colorectal_histology"]:
             rp = np.ones(self.nobjs)
-            rp[0] = -81
+            rp[0] = -93
             if self.nobjs > 1:
-                rp[1] = 10.0
-                rp[2] = 100.0
+                rp[1] = 4.0
+                rp[2] = 0.4
             return rp
         else:
             raise ValueError(f"{self.p_name} is not a valid problem")

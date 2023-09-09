@@ -11,7 +11,7 @@ performance data for neural networks trained on three standard benchmark
 problems:
  - ``fashion_mnist`` (**default**)
  - ``cifar10`` 
- - ``colorectal_history``
+ - ``colorectal_histology``
 
 Using these models as surrogates for the true performance, we can use this
 benchmark problem to study the performance of AutoML techniques on joint
@@ -71,7 +71,7 @@ to configure the JAHS-Bench problem:
 - ``DEEPHYPER_BENCHMARK_MOO`` to `0` for single objective runs or `1` for
   multiobjective runs. Defaults to `1`.
 - ``DEEPHYPER_BENCHMARK_JAHS_PROB`` to one of the following:
-  `fashion_mnist` (default), `cifar10`, or `colorectal_history`. 
+  `fashion_mnist` (default), `cifar10`, or `colorectal_histology`. 
 
 ## Metadata
 
@@ -143,9 +143,12 @@ These values were chosen by observing the true Pareto front for the raw data.
 However, we have purposefully created a lower bound on the "interesting range"
 for the ``valid-acc`` objective, which is higher than it was before.
 In particular, no accuracies less than 95% will be considered when
-computing hypervolume scores for the Fashion MNIST or CIFAR-10 datasets,
-and no accuracies less than 98% are considered for the colorectal screening
+computing hypervolume scores for the Fashion MNIST dataset,
+no accuracies less than 90% are considered for the CIFAR-10 dataset,
+and no accuracies less than 93% are considered for the colorectal histology
 dataset.
+When solving any of these problems via DeepHyper, the ``moo_lower_bounds``
+argument should be set accordingly.
 To evaluate hypervolume with these reference points, use our metrics as
 shown below
 
@@ -156,3 +159,18 @@ evaluator = metrics.PerformanceEvaluator()
 hv = evaluator.hypervolume(res)
 
 ```
+
+## Additional Problem Details
+
+Each problem in JAHS-Bench-201 is given by a XGBoost **surrogate** for a
+joint neural network architecture/hyperparameter search problem.
+Surrogates are given for networks trained to solve image classification tasks
+for three different datasets.
+These datasets are listed below and have the following properties:
+
+- ``fashion_mnist`` is based on the Fashion MNIST dataset (https://github.com/zalandoresearch/fashion-mnist).
+  This problem has lower bound of 95% on the "interesting range" of validation accuracies, and the Kendall's tau for the XGBoost model is over 92% for all 3 objectives (92.2% for the ``valid-acc`` objective).
+- ``cifar10`` is based on the Cifar-10 dataset (https://www.cs.toronto.edu/~kriz/cifar.html)
+  This problem has lower bound of 90% on the "interesting range" of validation accuracies, and the Kendall's tau for the XGBoost model is over 89% for all 3 objectives (89% for the ``valid-acc`` objective).
+- ``colorecal-histology`` is based on the colorectal histology dataset (https://zenodo.org/record/53169#.XGZemKwzbmG).
+  This problem has lower bound of 93% on the "interesting range" of validation accuracies, and the Kendall's tau for the XGBoost model is considerably lower than with the other datasets (just 68.2% for the ``valid-acc`` objective), so it may not be an accurate representation of the true problem.
