@@ -12,7 +12,7 @@ class jahs_bench:
         """ Import and configure the jahs-bench module.
 
         Args:
-            dataset (str): One of "cifar10", "colorectal_history",
+            dataset (str): One of "cifar10", "colorectal_histology",
                 or "fashion_mnist" (default)
 
         """

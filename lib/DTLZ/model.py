@@ -31,8 +31,6 @@ DTLZ problems:
  * ``dtlz5``
  * ``dtlz6``
  * ``dtlz7``
- * ``dtlz8``
- * ``dtlz9``
 
 """
 
