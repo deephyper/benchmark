@@ -1,11 +1,11 @@
 import os
-
 import time
-import numpy as np
-from deephyper.problem import HpProblem
-from deephyper.evaluator import profile, RunningJob
 
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
+import numpy as np
+from deephyper.evaluator import RunningJob, profile
+from deephyper.problem import HpProblem
+
+nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 domain = (-600.0, 600.0)
 problem = HpProblem()
 for i in range(nb_dim):
@@ -22,7 +22,6 @@ def griewank(x, fr=4000):
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
-
     config = job.parameters
 
     if sleep:

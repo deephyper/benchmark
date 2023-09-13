@@ -6,10 +6,11 @@ import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
 
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
+
+DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 domain = (-32.768, 32.768)
 problem = HpProblem()
-for i in range(nb_dim):
+for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
 
 
@@ -25,7 +26,6 @@ def ackley(x, a=20, b=0.2, c=2 * np.pi):
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
-
     config = job.parameters
 
     if sleep:
