@@ -72,7 +72,7 @@ class PerformanceEvaluator:
             rp[0] = -90
             if self.nobjs > 1:
                 rp[1] = 4.0
-                rp[2] = 0.0
+                rp[2] = 0.9
             return rp
         elif self.p_name in ["colorectal_histology"]:
             rp = np.ones(self.nobjs)
