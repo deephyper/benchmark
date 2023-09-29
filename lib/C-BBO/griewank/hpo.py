@@ -5,10 +5,10 @@ import numpy as np
 from deephyper.evaluator import RunningJob, profile
 from deephyper.problem import HpProblem
 
-nb_dim = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
+DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 domain = (-600.0, 600.0)
 problem = HpProblem()
-for i in range(nb_dim):
+for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
 
 

@@ -1,14 +1,14 @@
 import os
-
 import time
-import numpy as np
-from deephyper.problem import HpProblem
-from deephyper.evaluator import profile, RunningJob
 
-nb_dim = os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5)
+import numpy as np
+from deephyper.evaluator import RunningJob, profile
+from deephyper.problem import HpProblem
+
+DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
 domain = (-10.0, 10.0)
 problem = HpProblem()
-for i in range(nb_dim):
+for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
 
 
@@ -23,7 +23,6 @@ def levy(x):
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
-
     config = job.parameters
 
     if sleep:
