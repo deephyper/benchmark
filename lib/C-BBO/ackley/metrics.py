@@ -4,7 +4,7 @@ import numpy as np
 
 
 class PerformanceEvaluator:
-    """A class defining performance evaluators for the DTLZ problems.s"""
+    """A class defining performance evaluators for the DTLZ problems."""
 
     def __init__(self):
         """Read the current problem defn from environment vars."""
