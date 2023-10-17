@@ -15,3 +15,10 @@ try:
     __all__.append("COBYQA")
 except ImportError:
     pass
+
+try:
+    from deephyper_benchmark.search._pybobyqa import PyBOBYQA  # noqa: F401
+
+    __all__.append("PyBOBYQA")
+except ImportError:
+    pass
