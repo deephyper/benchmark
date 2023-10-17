@@ -100,7 +100,7 @@ class Benchmark:
                 res = self.process_requirement(rname, rcommand)
 
             if res != 0:
-                logging.error("Installation failed for requirement: {rname}")
+                logging.error(f"Installation failed for requirement: {rname}")
                 return res
 
     def load(self) -> int:
