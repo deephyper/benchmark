@@ -8,3 +8,10 @@ try:
     __all__.append("MPIDistributedOptuna")
 except ImportError:
     pass
+
+try:
+    from deephyper_benchmark.search._cobyqa import COBYQA  # noqa: F401
+
+    __all__.append("COBYQA")
+except ImportError:
+    pass
