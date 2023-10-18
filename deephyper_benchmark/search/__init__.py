@@ -22,3 +22,10 @@ try:
     __all__.append("PyBOBYQA")
 except ImportError:
     pass
+
+try:
+    from deephyper_benchmark.search._smac import SMAC  # noqa: F401
+
+    __all__.append("SMAC")
+except ImportError:
+    pass

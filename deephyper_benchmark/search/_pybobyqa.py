@@ -36,7 +36,7 @@ def convert_problem_to_pybobyqa(problem):
 
 
 class PyBOBYQA(Search):
-    """Wrapper for PyBOBYQA derivative-free optimizater.
+    """Wrapper for PyBOBYQA derivative-free optimizer.
 
     $ pip install Py-BOBYQA
 
@@ -55,11 +55,13 @@ class PyBOBYQA(Search):
         random_state: int = None,
         log_dir: str = ".",
         verbose: int = 0,
+        seek_global_minimum: bool = True,
         **kwargs,
     ):
         super().__init__(problem, evaluator, random_state, log_dir, verbose)
 
         self._xl, self._xu = convert_problem_to_pybobyqa(problem)
+        self._seek_global_minimum = seek_global_minimum
 
     def _search(self, max_evals, timeout):
         def objective_wrapper(x):
@@ -76,7 +78,7 @@ class PyBOBYQA(Search):
             x0=x0,
             bounds=(self._xl, self._xu),
             maxfun=max_evals,
-            seek_global_minimum=True,
+            seek_global_minimum=self._seek_global_minimum,
         )
 
         self._evaluator.dump_evals(log_dir=self._log_dir)
