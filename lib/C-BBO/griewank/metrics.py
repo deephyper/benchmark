@@ -4,8 +4,7 @@ import numpy as np
 
 
 class PerformanceEvaluator:
-    """A class defining performance evaluators for the Ackley problem.
-    """
+    """A class defining performance evaluators for the Griewank problem."""
 
     def __init__(self):
         """Read the current problem defn from environment vars."""
