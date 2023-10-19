@@ -5,10 +5,10 @@ import numpy as np
 from deephyper.problem import HpProblem
 from deephyper.evaluator import profile, RunningJob
 
-nb_dim = 6
+DEEPHYPER_BENCHMARK_NDIMS = 6
 domain = (0.0, 1.0)
 problem = HpProblem()
-for i in range(nb_dim):
+for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
 
 
@@ -39,7 +39,6 @@ def hartmann6D(x):
 
 @profile
 def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
-
     config = job.parameters
 
     if sleep:
