@@ -9,15 +9,19 @@ from deephyper.evaluator import profile, RunningJob
 
 DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 2))
 
-domain = (0, np.pi)
+domain = (-100.0, 100.0)
 problem = HpProblem()
 for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
 
 
-def michal(x, m=10):
-    ix2 = np.arange(1, len(x) + 1) * x**2
-    y = -np.sum(np.sin(x) * np.power(np.sin(ix2 / np.pi), 2 * m))
+def easom(x):
+    assert len(x) == 2
+    y = (
+        -np.cos(x[0])
+        * np.cos(x[1])
+        * np.exp(-((x[0] - np.pi) ** 2 + (x[1] - np.pi) ** 2))
+    )
     return y
 
 
@@ -33,7 +37,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
 
-    return -michal(x)
+    return -easom(x)
 
 
 if __name__ == "__main__":
