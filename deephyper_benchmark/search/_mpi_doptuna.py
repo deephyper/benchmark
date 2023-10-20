@@ -62,7 +62,7 @@ class CheckpointSaverCallback:
 
 
 # Supported samplers
-supported_samplers = ["TPE", "CMAES", "NSGAII", "DUMMY", "BOTORCH"]
+supported_samplers = ["TPE", "CMAES", "NSGAII", "DUMMY", "BOTORCH", "QMC"]
 supported_pruners = ["NOP", "SHA", "HB", "MED"]
 
 
@@ -104,6 +104,7 @@ class MPIDistributedOptuna(Search):
         study_name: str = None,
         storage: Union[str, optuna.storages.BaseStorage] = None,
         checkpoint: bool = True,
+        n_initial_points: int = None,
         comm: MPI.Comm = None,
         **kwargs,
     ):
@@ -130,15 +131,23 @@ class MPIDistributedOptuna(Search):
             self._random_state.randint(low=0, high=2**31, size=self.size)[self.rank]
         )
 
+        self._n_initial_points = (
+            2 * len(self._problem) if n_initial_points is None else n_initial_points
+        )
+
         # Setup the sampler
         if isinstance(sampler, optuna.samplers.BaseSampler):
             pass
         elif isinstance(sampler, str):
             sampler_seed = self._random_state.randint(2**31)
             if sampler == "TPE":
-                sampler = optuna.samplers.TPESampler(seed=sampler_seed)
+                sampler = optuna.samplers.TPESampler(
+                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                )
             elif sampler == "CMAES":
-                sampler = optuna.samplers.CmaEsSampler(seed=sampler_seed)
+                sampler = optuna.samplers.CmaEsSampler(
+                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                )
             elif sampler == "NSGAII":
                 sampler = optuna.samplers.NSGAIISampler(seed=sampler_seed)
             elif sampler == "DUMMY":
@@ -146,7 +155,12 @@ class MPIDistributedOptuna(Search):
             elif sampler == "BOTORCH":
                 from optuna.integration import BoTorchSampler
 
-                sampler = BoTorchSampler(seed=sampler_seed)
+                sampler = BoTorchSampler(
+                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                )
+            elif sampler == "QMC":
+                sampler = optuna.samplers.QMCSampler(seed=sampler_seed)
+
             else:
                 raise ValueError(
                     f"Requested unknown sampler {sampler} should be one of {supported_samplers}"
