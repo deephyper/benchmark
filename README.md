@@ -144,8 +144,17 @@ In the following table:
 |            |                                                                              |                                              |                   |                 |                |                     |
       
       
-      
-      
+## List of Optimization Algorithm
+
+- COBYQA: `deephyper_benchmark.search.COBYQA(...)`
+- PyBOBYQA: `deephyper_benchmark.search.PyBOBYQA(...)`
+- TPE: `deephyper_benchmark.search.MPIDistributedOptuna(..., sampler="TPE")`
+- BoTorch: `deephyper_benchmark.search.MPIDistributedOptuna(..., sampler="BOTORCH")`
+- CMAES: `deephyper_benchmark.search.MPIDistributedOptuna(..., sampler="CMAES")`
+- NSGAII: `deephyper_benchmark.search.MPIDistributedOptuna(..., sampler="NSGAII")`
+- QMC: `deephyper_benchmark.search.MPIDistributedOptuna(..., sampler="QMC")`
+- SMAC: `deephyper_benchmark.search.SMAC(...)`
+
       
       
       
