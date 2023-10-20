@@ -11,5 +11,6 @@ Set of continuous function benchmark. The `DEEPHYPER_BENCHMARK_NDIMS` environmen
 | griewank      | $\infty$             |
 | hartmann6D    | 6                    |
 | levy          | $\infty$             |
+| michal        | $\infty$             |
 | rosen         | $\infty$             |
 | schwefel      | $\infty$             |
