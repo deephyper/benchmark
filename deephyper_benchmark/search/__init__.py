@@ -29,3 +29,10 @@ try:
     __all__.append("SMAC")
 except ImportError:
     pass
+
+try:
+    from deephyper_benchmark.search._de_automl import DEAutoML  # noqa: F401
+
+    __all__.append("DEAutoML")
+except ImportError:
+    pass
