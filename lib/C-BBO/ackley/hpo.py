@@ -8,7 +8,11 @@ from deephyper.evaluator import profile, RunningJob
 
 
 DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
-domain = (-32.768, 32.768)
+DEEPHYPER_BENCHMARK_OFFSET = float(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 4.0))
+
+# The original range is simetric (-32.768, 32.768) but we make it less simetric to avoid
+# Grid sampling or QMC sampling to directly hit the optimum...
+domain = (-32.768 - DEEPHYPER_BENCHMARK_OFFSET, 32.768 - DEEPHYPER_BENCHMARK_OFFSET)
 problem = HpProblem()
 for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
