@@ -8,8 +8,11 @@ from deephyper.evaluator import profile, RunningJob
 
 
 DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 2))
+DEEPHYPER_BENCHMARK_OFFSET = float(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 20.0))
 
-domain = (-100.0, 100.0)
+# The original range is simetric (-100.0, 100.0) but we make it less simetric to avoid
+# Grid sampling or QMC sampling to directly hit the optimum...
+domain = (-100.0 - DEEPHYPER_BENCHMARK_OFFSET, 100.0 - DEEPHYPER_BENCHMARK_OFFSET)
 problem = HpProblem()
 for i in range(DEEPHYPER_BENCHMARK_NDIMS):
     problem.add_hyperparameter(domain, f"x{i}")
@@ -43,6 +46,7 @@ def run(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
 if __name__ == "__main__":
     print(problem)
     default_config = problem.default_configuration
+    default_config = {"x0": np.pi, "x1": np.pi}  # sol
     print(f"{default_config=}")
     result = run(RunningJob(parameters=default_config))
     print(f"{result=}")
