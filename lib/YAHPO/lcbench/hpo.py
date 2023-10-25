@@ -43,8 +43,6 @@ def run(job: RunningJob) -> dict:
         for b in range(min_b, max_b + 1)
     ]
 
-    print(outputs[0])
-
     for i, out_i in enumerate(outputs):
         out_i = out_i[0]
         budget_i = i + 1
