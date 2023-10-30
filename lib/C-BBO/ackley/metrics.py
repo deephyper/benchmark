@@ -2,16 +2,21 @@ import os
 
 import numpy as np
 
+from .hpo import (
+    DEEPHYPER_BENCHMARK_NDIMS,
+    DEEPHYPER_BENCHMARK_NDIMS_SLACK,
+)
+
 
 class PerformanceEvaluator:
-    """A class defining performance evaluators for the Ackley problem.
-    """
+    """A class defining performance evaluators for the Ackley problem."""
 
     def __init__(self):
         """Read the current problem defn from environment vars."""
 
-        self.p_num = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
+        self.p_num = DEEPHYPER_BENCHMARK_NDIMS
         self.x_min = np.zeros(self.p_num)
+        self.x_min[DEEPHYPER_BENCHMARK_NDIMS-DEEPHYPER_BENCHMARK_NDIMS_SLACK:] = np.nan
         self.y_min = 0.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
