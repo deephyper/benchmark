@@ -23,6 +23,12 @@ class DEAutoML(Search):
 
     $ pip install dehb
 
+    Papers:
+        1. Awad, Noor, Neeratyoy Mallik, and Frank Hutter. "Differential evolution for neural architecture search." arXiv preprint arXiv:2012.06400 (2020). ICLR Workshop, 2020.
+        2. Awad, Noor, Neeratyoy Mallik, and Frank Hutter. "Dehb: Evolutionary hyperband for scalable, robust and efficient hyperparameter optimization." arXiv preprint arXiv:2105.09821 (2021).
+
+
+
     Args:
         problem (HpProblem): Hyperparameter problem describing the search space to explore.
         evaluator (Evaluator): An ``Evaluator`` instance responsible of distributing the tasks.
