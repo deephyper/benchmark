@@ -16,3 +16,4 @@ Set of continuous function benchmarks. The `DEEPHYPER_BENCHMARK_NDIMS` environme
 | michal        | $\infty$ (default 2)  |                                             |
 | rosen         | $\infty$ (default 5)  |                                             |
 | schwefel      | $\infty$ (default 5)  |                                             |
+| shekel        | 4                     | Many local minima with flat areas           |
