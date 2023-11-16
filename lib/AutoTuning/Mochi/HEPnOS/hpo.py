@@ -16,6 +16,9 @@ DATA_DIR = os.path.join(
     BUILD_DIR, "HEPnOS-Autotuning-analysis-main", "results", "theta"
 )
 
+DEEPHYPER_BENCHMARK_HEPNOS_MODEL = os.environ.get(
+    "DEEPHYPER_BENCHMARK_HEPNOS_MODEL", "RAND"
+)
 DEEPHYPER_BENCHMARK_HEPNOS_SCALE = int(
     os.environ.get("DEEPHYPER_BENCHMARK_HEPNOS_SCALE", "4")
 )
@@ -43,16 +46,16 @@ def add_parameter(name, domain, value_type, default_value, description=""):
 def create_problem():
     add_parameter(
         "busy_spin",
-        [True, False],
-        bool,
-        False,
+        [0, 1],
+        int,
+        0,
         "Whether Mercury should busy-spin instead of block",
     )
     add_parameter(
         "hepnos_progress_thread",
-        [True, False],
-        bool,
-        False,
+        [0, 1],
+        int,
+        0,
         "Whether to use a dedicated progress thread in HEPnOS",
     )
     add_parameter(
@@ -99,9 +102,9 @@ def create_problem():
     )
     add_parameter(
         "loader_progress_thread",
-        [True, False],
-        bool,
-        False,
+        [0, 1],
+        int,
+        0,
         "Whether to use a dedicated progress thread in the Dataloader",
     )
     add_parameter(
@@ -121,9 +124,9 @@ def create_problem():
     if DEEPHYPER_BENCHMARK_HEPNOS_MORE_PARAMS:
         add_parameter(
             "loader_async",
-            [True, False],
-            bool,
-            False,
+            [0, 1],
+            int,
+            0,
             "Whether to use the HEPnOS AsyncEngine in the Dataloader",
         )
         add_parameter(
@@ -139,9 +142,9 @@ def create_problem():
 
     add_parameter(
         "pep_progress_thread",
-        [True, False],
-        bool,
-        False,
+        [0, 1],
+        int,
+        0,
         "Whether to use a dedicated progress thread in the PEP step",
     )
     add_parameter(
@@ -176,23 +179,24 @@ def create_problem():
     if DEEPHYPER_BENCHMARK_HEPNOS_MORE_PARAMS:
         add_parameter(
             "pep_no_preloading",
-            [True, False],
-            bool,
+            [0, 1],
+            int,
             False,
             "Whether to disable product-preloading in PEP",
         )
         add_parameter(
             "pep_no_rdma",
-            [True, False],
-            bool,
-            False,
+            [0, 1],
+            int,
+            0,
             "Whether to disable RDMA in PEP",
         )
 
 
 create_problem()
 
-csv_suffix = f"{str(DEEPHYPER_BENCHMARK_HEPNOS_DISABLE_PEP).lower()}-{str(DEEPHYPER_BENCHMARK_HEPNOS_MORE_PARAMS).lower()}"
+CSV_SUFFIX = f"{str(DEEPHYPER_BENCHMARK_HEPNOS_DISABLE_PEP).lower()}-{str(DEEPHYPER_BENCHMARK_HEPNOS_MORE_PARAMS).lower()}"
+CSV_SUFFIX = f"{DEEPHYPER_BENCHMARK_HEPNOS_MODEL}-{DEEPHYPER_BENCHMARK_HEPNOS_SCALE}-{CSV_SUFFIX}"
 
 
 def load_data():
@@ -200,7 +204,7 @@ def load_data():
     for i in range(1, 6):
         csv_path = os.path.join(
             DATA_DIR,
-            f"exp-RAND-{DEEPHYPER_BENCHMARK_HEPNOS_SCALE}-{csv_suffix}-{i}.csv",
+            f"exp-{CSV_SUFFIX}-{i}.csv",
         )
         df = pd.read_csv(csv_path, index_col=None, header=0)
         df, df_with_failures = filter_failed_objectives(df)
@@ -259,7 +263,10 @@ def run(job: RunningJob) -> dict:
     config = job.parameters.copy()
 
     df = pd.DataFrame([config])
-    y_pred = model.predict(df)[0]
+    y_pred = -model.predict(df)[0]
+
+    if y_pred > 0:
+        y_pred = "F"
 
     return {"objective": y_pred}
 
