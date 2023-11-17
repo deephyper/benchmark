@@ -23,7 +23,7 @@ class PerformanceEvaluator:
         idx_opt_te = np.argmin(te)
 
         # Configuration, Validation Error, Test Error based on the best validation error
-        self.x_min_on_valid = ve[idx_opt_ve]
+        self.x_min_on_valid = dict(configs[idx_opt_ve])
         self.y_min_valid_on_valid = ve[idx_opt_ve]
         self.y_min_test_on_valid = te[idx_opt_ve]
 
