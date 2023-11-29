@@ -9,6 +9,7 @@ Set of continuous function benchmarks. The `DEEPHYPER_BENCHMARK_NDIMS` environme
 | ------------- | --------------------- | ------------------------------------------- |
 | ackley        | $\infty$ (default 5)  | Many local minima and single global optimum |
 | branin        | 2                     | Three global optimum                        |
+| cossin        | 1                     | Many local minima, good for visualisation.  |
 | easom         | 2                     | Almost flat everywhere                      |
 | griewank      | $\infty$ (default 5)  |                                             |
 | hartmann6D    | 6                     |                                             |
