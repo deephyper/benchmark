@@ -66,14 +66,13 @@ class COBYQA(Search):
         self._xl, self._xu = convert_problem_to_cobyqa(problem)
 
     def _search(self, max_evals, timeout):
-
         def objective_wrapper(x):
             config = {k: v for k, v in zip(self._problem.hyperparameter_names, x)}
             self._evaluator.submit([config])
             job = self._evaluator.gather("ALL")[0]
             _, y = job
             return -y
-        
+
         x0 = self._random_state.uniform(low=self._xl, high=self._xu)
 
         cobyqa_results = cobyqa.minimize(
@@ -81,7 +80,7 @@ class COBYQA(Search):
             x0=x0,
             xl=self._xl,
             xu=self._xu,
-            options={"max_eval": max_evals},
+            options={"max_eval": max_evals, "scale": True},
         )
 
         self._evaluator.dump_evals(log_dir=self._log_dir)
