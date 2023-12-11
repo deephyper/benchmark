@@ -13,6 +13,7 @@ from deephyper.search import Search  # noqa: E402
 
 import smac
 import smac.acquisition.function
+import smac.multi_objective.parego
 
 
 MAP_acq_func = {"UCB": "LCB"}
@@ -41,24 +42,41 @@ class SMAC(Search):
         verbose: int = 0,
         acq_func: str = "UCB",
         acq_func_kwargs: dict = None,
+        n_objectives: int = 1,
+        n_initial_points: int = None,
         **kwargs,
     ):
         super().__init__(problem, evaluator, random_state, log_dir, verbose)
 
         self._acq_func = MAP_acq_func.get(acq_func, acq_func)
         self._acq_func_kwargs = acq_func_kwargs if acq_func_kwargs is not None else {}
+        self.n_objectives = n_objectives
+        self.n_initial_points = n_initial_points if n_initial_points is not None else 10
+        self.seed = self._random_state.randint(low=0, high=2**31)
 
     def _search(self, max_evals, timeout):
         def objective_wrapper(config, seed=None):
             self._evaluator.submit([dict(config)])
             job = self._evaluator.gather("ALL")[0]
             _, y = job
-            return -y
+            if self.n_objectives > 1:
+                y = {f"cost_{i}": -y[i] for i in range(self.n_objectives)}
+            else:
+                y = -y
+            return y
 
         scenario = smac.Scenario(
             self._problem.space,
+            objectives="cost"
+            if self.n_objectives == 1
+            else [f"cost_{i}" for i in range(self.n_objectives)],
             n_trials=max_evals,
             output_directory=os.path.join(self._log_dir, "smac_output"),
+            seed=self.seed,
+        )
+
+        initial_design = smac.HyperparameterOptimizationFacade.get_initial_design(
+            scenario, n_configs=self.n_initial_points
         )
 
         # Use SMAC to find the best configuration/hyperparameters
@@ -68,6 +86,10 @@ class SMAC(Search):
             acquisition_function=getattr(smac.acquisition.function, self._acq_func)(
                 **self._acq_func_kwargs
             ),
+            initial_design=initial_design,
+            multi_objective_algorithm=None
+            if self.n_objectives == 1
+            else smac.multi_objective.parego.ParEGO(scenario),
             logging_level=False,
         )
         incumbent = optimizer.optimize()
