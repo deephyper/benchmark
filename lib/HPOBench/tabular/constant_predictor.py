@@ -115,6 +115,7 @@ if __name__ == "__main__":
     model = DummyRegressor(strategy="mean")
     model.fit(X_train, y_train)
 
+    # As the data are normalized these values are expected to be close to 1.0
     fold = ["train", "valid", "test"]
     for i, (X, y) in enumerate(
         zip([X_train, X_valid, X_test], [y_train, y_valid, y_test])

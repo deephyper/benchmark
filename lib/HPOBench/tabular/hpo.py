@@ -1,6 +1,8 @@
 import os
 import time
 
+import numpy as np
+
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 import hpobench.benchmarks.nas.tabular_benchmarks
@@ -42,6 +44,10 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     # otherwise failure
     config = job.parameters
 
+    seed = int(job.id.split(".")[-1])
+    rng = np.random.RandomState(seed)
+    run_index = int(rng.choice((0, 1, 2, 3)))
+
     benchmark_class = getattr(
         hpobench.benchmarks.nas.tabular_benchmarks,
         map_task_to_benchmark[DEEPHYPER_BENCHMARK_TASK],
@@ -55,7 +61,9 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     cost_eval = eval_test["cost"]
     cost_step = cost_eval / (max_b - min_b + 1)
 
-    eval_val = b.objective_function(config, fidelity={"budget": max_b})
+    eval_val = b.objective_function(
+        config, fidelity={"budget": max_b}, run_index=run_index
+    )
     objective_val = -eval_val["function_value"]
 
     other_metadata = {}
@@ -64,7 +72,9 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     if optuna_trial:
         for budget_i in range(min_b, max_b + 1):
-            eval = b.objective_function(config, fidelity={"budget": budget_i})
+            eval = b.objective_function(
+                config, fidelity={"budget": budget_i}, run_index=run_index
+            )
 
             consumed_time += cost_step
             if DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME:
@@ -73,7 +83,8 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             objective_i = -eval["function_value"]  # maximizing in deephyper
 
             # Trial report is not support for MOO in Optuna
-            if DEEPHYPER_BENCHMARK_MOO: continue
+            if DEEPHYPER_BENCHMARK_MOO:
+                continue
 
             optuna_trial.report(objective_i, step=budget_i)
             if optuna_trial.should_prune():
@@ -83,7 +94,9 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     else:
         for budget_i in range(min_b, max_b + 1):
-            eval = b.objective_function(config, fidelity={"budget": budget_i})
+            eval = b.objective_function(
+                config, fidelity={"budget": budget_i}, run_index=run_index
+            )
 
             consumed_time += cost_step
             if DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME:
