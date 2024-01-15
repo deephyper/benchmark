@@ -56,15 +56,18 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
     budget_space = b.get_fidelity_space().get("budget")
     min_b, max_b = budget_space.lower, budget_space.upper
 
+    # The objective is the coefficient of determination (R^2)
+    # As the target were standardized, the R^2 = 1 - MSE / MSE_baseline with MSE_baseline = 1.0
+    # The objective is maximized in deephyper
     eval_test = b.objective_function_test(config, fidelity={"budget": max_b})
-    objective_test = -eval_test["function_value"]
+    objective_test = 1 - eval_test["function_value"]
     cost_eval = eval_test["cost"]
     cost_step = cost_eval / (max_b - min_b + 1)
 
     eval_val = b.objective_function(
         config, fidelity={"budget": max_b}, run_index=run_index
     )
-    objective_val = -eval_val["function_value"]
+    objective_val = 1 - eval_val["function_value"]
 
     other_metadata = {}
 
@@ -80,7 +83,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             if DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME:
                 time.sleep(cost_step * DEEPHYPER_BENCHMARK_PROP_REAL_RUN_TIME)
 
-            objective_i = -eval["function_value"]  # maximizing in deephyper
+            objective_i = 1 - eval["function_value"]  # maximizing in deephyper
 
             # Trial report is not support for MOO in Optuna
             if DEEPHYPER_BENCHMARK_MOO:
@@ -102,7 +105,7 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
             if DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME:
                 time.sleep(cost_step * DEEPHYPER_BENCHMARK_PROP_REAL_RUN_TIME)
 
-            objective_i = -eval["function_value"]  # maximizing in deephyper
+            objective_i = 1 - eval["function_value"]  # maximizing in deephyper
             job.record(budget_i, objective_i)
             if job.stopped():
                 break

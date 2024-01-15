@@ -98,13 +98,15 @@ def load_from_openml(dataset_id: str) -> Tuple[np.ndarray, np.ndarray, dict]:
 
 if __name__ == "__main__":
     # Some tests
-    # task = "navalpropulsion"
+    task = "navalpropulsion"
+    # task = "parkinsonstelemonitoring"
     # task = "proteinstructure"
-    task = "slicelocalization"
+    # task = "slicelocalization"
     print(f"Task: {task}")
     openmlid = map_task_to_openmlid[task]
     X_train, X_valid, X_test, y_train, y_valid, y_test = load_from_openml(openmlid)
 
+    print("Num samples:", X_train.shape[0] + X_valid.shape[0] + X_test.shape[0])
     print("X_train.shape", X_train.shape)
     print("X_valid.shape", X_valid.shape)
     print("X_test.shape", X_test.shape)
