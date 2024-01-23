@@ -70,15 +70,20 @@ class LCPFNStopper(Stopper):
         self,
         max_steps: int,
         min_steps: int = 1,
+        min_obs_to_fit_lc_model=1,
         min_done_for_outlier_detection=10,
         iqr_factor_for_outlier_detection=1.5,
         prob_promotion=0.9,
         early_stopping_patience=0.25,
+        reduction_factor=1,
         objective_returned="last",
+        random_state=None,
     ) -> None:
         super().__init__(max_steps=max_steps)
         self.min_steps = min_steps
-        self.min_obs_to_fit = 1
+
+        self._min_obs_to_fit_lc_model = min_obs_to_fit_lc_model
+        self._reduction_factor = reduction_factor
 
         self.min_done_for_outlier_detection = min_done_for_outlier_detection
         self.iqr_factor_for_outlier_detection = iqr_factor_for_outlier_detection
@@ -94,18 +99,13 @@ class LCPFNStopper(Stopper):
 
         self._rung = 0
 
-        # compute the step at which to stop based on steps allocation policy
-        max_rung = np.floor(
-            np.log(self.max_steps / self.min_steps) / np.log(self.min_obs_to_fit)
-        )
-        self.max_steps_ = int(self.min_steps * self.min_obs_to_fit**max_rung)
-
+        self._random_state = random_state
         self.lc_model = lcpfn.LCPFN()
 
         self._lc_objectives = []
 
     def _compute_halting_step(self):
-        return self.min_steps * self.min_obs_to_fit**self._rung
+        return (self.min_steps - 1) * self._reduction_factor**self._rung
 
     def _retrieve_best_objective(self) -> float:
         search_id, _ = self.job.id.split(".")
@@ -165,7 +165,13 @@ class LCPFNStopper(Stopper):
         self.best_objective = self._retrieve_best_objective()
 
         halting_step = self._compute_halting_step()
-        if self.step < max(self.min_steps, self.min_obs_to_fit):
+
+        if self.step < self.min_steps:
+            if self.step >= halting_step:
+                self._rung += 1
+            return False
+
+        if self.step < self._min_obs_to_fit_lc_model:
             if self.step >= halting_step:
                 competing_objectives = self._get_competiting_objectives(self._rung)
                 if len(competing_objectives) > self.min_done_for_outlier_detection:
