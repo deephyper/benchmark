@@ -61,6 +61,11 @@ class CheckpointSaverCallback:
         )
 
 
+# Constraints
+def constraints(trial):
+    return trial.user_attrs["constraints"]
+
+
 # Supported samplers
 supported_samplers = ["TPE", "CMAES", "NSGAII", "DUMMY", "BOTORCH", "QMC"]
 supported_pruners = ["NOP", "SHA", "HB", "MED"]
@@ -82,6 +87,7 @@ class MPIDistributedOptuna(Search):
         storage (Union[str, optuna.storages.BaseStorage], optional): Database used by Optuna. Defaults to ``None``.
         checkpoint (bool, optional): If results should be checkpointed regularly to the ``log_dir``. Defaults to ``True``.
         comm (MPI.Comm, optional): The MPI communicator. Defaults to ``None``.
+        moo_lower_bounds ([type], optional): [description]. Defaults to ``None``.
 
     Raises:
         ValueError: _description_
@@ -106,6 +112,7 @@ class MPIDistributedOptuna(Search):
         checkpoint: bool = True,
         n_initial_points: int = None,
         comm: MPI.Comm = None,
+        moo_lower_bounds=None,
         **kwargs,
     ):
         super().__init__(problem, evaluator, random_state, log_dir, verbose)
@@ -135,6 +142,17 @@ class MPIDistributedOptuna(Search):
             2 * len(self._problem) if n_initial_points is None else n_initial_points
         )
 
+        # Constraints
+        self._moo_lower_bounds = moo_lower_bounds
+        self._constraints_func = None
+        if moo_lower_bounds is not None:
+            if len(moo_lower_bounds) == n_objectives:
+                self._constraints_func = constraints
+            else:
+                raise ValueError(
+                    f"moo_lower_bounds should be of length {n_objectives} but is of length {len(moo_lower_bounds)}"
+                )
+
         # Setup the sampler
         if isinstance(sampler, optuna.samplers.BaseSampler):
             pass
@@ -142,21 +160,28 @@ class MPIDistributedOptuna(Search):
             sampler_seed = self._random_state.randint(2**31)
             if sampler == "TPE":
                 sampler = optuna.samplers.TPESampler(
-                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                    n_startup_trials=self._n_initial_points,
+                    seed=sampler_seed,
+                    constraints_func=self._constraints_func,
                 )
             elif sampler == "CMAES":
                 sampler = optuna.samplers.CmaEsSampler(
                     n_startup_trials=self._n_initial_points, seed=sampler_seed
                 )
             elif sampler == "NSGAII":
-                sampler = optuna.samplers.NSGAIISampler(seed=sampler_seed)
+                sampler = optuna.samplers.NSGAIISampler(
+                    seed=sampler_seed,
+                    constraints_func=self._constraints_func,
+                )
             elif sampler == "DUMMY":
                 sampler = optuna.samplers.RandomSampler(seed=sampler_seed)
             elif sampler == "BOTORCH":
                 from optuna.integration import BoTorchSampler
 
                 sampler = BoTorchSampler(
-                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                    n_startup_trials=self._n_initial_points,
+                    seed=sampler_seed,
+                    constraints_func=self._constraints_func,
                 )
             elif sampler == "QMC":
                 sampler = optuna.samplers.QMCSampler(seed=sampler_seed)
@@ -253,6 +278,15 @@ class MPIDistributedOptuna(Search):
                 )
 
             # TODO: optuna constraint
+            if self._moo_lower_bounds is not None:
+                # https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-optimize-a-model-with-some-constraints
+                # Constraints which are considered feasible if less than or equal to zero.
+                constraints = []
+                for i, lbi in enumerate(self._moo_lower_bounds):
+                    if lbi is not None:
+                        ci = -(output["objective"][i] - lbi) # <= 0
+                        constraints.append(ci)
+                trial.set_user_attr("constraints", tuple(constraints))
 
             data = {f"p:{k}": v for k, v in config.items()}
             if isinstance(output["objective"], list) or isinstance(
