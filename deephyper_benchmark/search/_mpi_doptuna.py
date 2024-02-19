@@ -283,7 +283,7 @@ class MPIDistributedOptuna(Search):
                 # Constraints which are considered feasible if less than or equal to zero.
                 constraints = []
                 for i, lbi in enumerate(self._moo_lower_bounds):
-                    if lbi is not None:
+                    if lbi is not None and type(output["objective"][i]) is not str:
                         ci = -(output["objective"][i] - lbi) # <= 0
                         constraints.append(ci)
                 trial.set_user_attr("constraints", tuple(constraints))
