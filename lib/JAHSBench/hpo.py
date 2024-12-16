@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 from deephyper.evaluator import profile, RunningJob
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from . import model
 
 

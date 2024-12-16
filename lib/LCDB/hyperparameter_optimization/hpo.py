@@ -7,7 +7,7 @@ import numpy as np
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from lcdb.analysis import read_csv_results
 from lcdb.analysis.json import (
     QueryAnchorValues,
@@ -90,6 +90,12 @@ else:
 problem.add_hyperparameter((0, len(DEEPHYPER_BENCHMARK_DATA) - 1), "eval_id")
 
 
+# TODO: To test LCPFN with accuracy metric
+def query_balanced_accuracy_values_on_val(x):
+    cm = query_confusion_matrix_values_on_val(x)
+    return list(map(balanced_accuracy_from_confusion_matrix, cm))
+
+
 def query_coefficient_of_determiniation_values_on_val(x):
     cm = query_confusion_matrix_values_on_val(x)
     num_classes = len(cm[0])
@@ -125,24 +131,32 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     source = DEEPHYPER_BENCHMARK_DATA.iloc[eval_id]["m:json"]
     anchor_values = query_anchor_values(source)
+
+    # TODO: to test with LCPFN
+    objective_values = query_balanced_accuracy_values_on_val(source)
+
     objective_val_values = query_coefficient_of_determiniation_values_on_val(source)
     objective_test_values = query_coefficient_of_determiniation_values_on_test(source)
     length = min(len(objective_val_values), len(objective_test_values))
     anchor_values = anchor_values[:length]
+    objective_values = objective_values[:length]
     objective_val_values = objective_val_values[:length]
     objective_test_values = objective_test_values[:length]
 
+    objective_values = np.array(objective_values)
     objective_val_values = np.array(objective_val_values)
     objective_test_values = np.array(objective_test_values)
     anchor_values = np.array(anchor_values)
 
     mask = anchor_values <= DEEPHYPER_BENCHMARK_MAX_FIDELITY
     anchor_values = anchor_values[mask].tolist()
+    objective_values = objective_values[mask].tolist()
     objective_val_values = objective_val_values[mask].tolist()
     objective_test_values = objective_test_values[mask].tolist()
 
     if anchor_values[-1] <= DEEPHYPER_BENCHMARK_MAX_FIDELITY:
         anchor_values.append(DEEPHYPER_BENCHMARK_MAX_FIDELITY)
+        objective_values.append(objective_values[-1])
         objective_val_values.append(objective_val_values[-1])
         objective_test_values.append(objective_test_values[-1])
 
@@ -164,7 +178,9 @@ def run(job: RunningJob, optuna_trial=None) -> dict:
 
     else:
         for i, budget_i in enumerate(anchor_values):
-            objective_i = objective_val_values[i]
+            # objective_i = objective_val_values[i]
+            # TODO: to test with LCPFN
+            objective_i = objective_values[i]
 
             job.record(budget_i, objective_i)
             if job.stopped():

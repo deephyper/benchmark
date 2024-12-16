@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from deephyper.analysis.hpo import filter_failed_objectives
 from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from sklearn.compose import ColumnTransformer
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import OneHotEncoder, FunctionTransformer

@@ -3,7 +3,7 @@ import numpy as np
 import lcdb
 
 from deephyper.evaluator import profile, RunningJob
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 
 df_meta = lcdb.get_meta_features()

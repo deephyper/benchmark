@@ -2,7 +2,7 @@ import os
 
 from ConfigSpace import ConfigurationSpace
 from deephyper.evaluator import profile, RunningJob
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 from yahpo_gym import benchmark_set
 import yahpo_gym.benchmarks.lcbench

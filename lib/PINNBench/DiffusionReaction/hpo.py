@@ -3,7 +3,7 @@ import os
 import numpy as np
 import torch
 from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from deephyper.stopper.integration.deepxde import DeepXDEStopperCallback
 from deepxde.callbacks import EarlyStopping
 from fvcore.nn import FlopCountAnalysis

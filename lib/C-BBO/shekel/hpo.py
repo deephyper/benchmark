@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 DEEPHYPER_BENCHMARK_NDIMS = 4
 domain = (0.0, 10.0)

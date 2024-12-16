@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 from deephyper.evaluator import RunningJob, profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from scipy.optimize import rosen
 
 DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))

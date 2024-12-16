@@ -8,7 +8,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 import hpobench.benchmarks.nas.tabular_benchmarks
 
 from deephyper.evaluator import profile, RunningJob
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME = bool(
     int(os.environ.get("DEEPHYPER_BENCHMARK_SIMULATE_RUN_TIME", 0))

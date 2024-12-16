@@ -1,6 +1,6 @@
 import torch
 from deephyper.evaluator import profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 from .model import build_and_train_model
 

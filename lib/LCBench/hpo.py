@@ -3,7 +3,7 @@ import os
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 from deephyper.evaluator import profile, RunningJob
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 
 dataset = os.environ.get("DEEPHYPER_BENCHMARK_LCBENCH_DATASET", "APSFailure")
 

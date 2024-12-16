@@ -3,7 +3,7 @@ import os
 import traceback
 
 from deephyper.evaluator import profile
-from deephyper.problem import HpProblem
+from deephyper.hpo import HpProblem
 from deephyper.stopper.integration.tensorflow import TFKerasStopperCallback
 
 from .model import run_pipeline
