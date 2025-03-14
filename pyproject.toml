@@ -1,6 +1,72 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "deephyper-benchmark"
+version = "0.0.2"
+dependencies = [
+    # "deephyper",
+    "deephyper>=0.9.3",
 ]
-build-backend = "setuptools.build_meta"
+requires-python = ">=3.10"
+authors = [
+    { name = "Romain Egele", email = "regele@ornl.gov" },
+]
+maintainers = [
+    { name = "Romain Egele", email = "regele@ornl.gov" },
+]
+description = "Some description..."
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.optional-dependencies]
+
+
+[project.scripts]
+
+
+[project.urls]
+Documentation = "http://deephyper.readthedocs.io"
+Changes = "https://github.com/deephyper/deephyper/releases"
+Forum = "https://github.com/deephyper/deephyper/discussions"
+GitHub = "https://github.com/deephyper/deephyper"
+Issues = "https://github.com/deephyper/deephyper/issues"
+
+[tool.pytest.ini_options]
+norecursedirs = ".git"
+
+
+[tool.coverage.paths]
+source = ["src/", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["deephyper"]
+
+[tool.coverage.report]
+exclude_lines = ["if __name__ == '__main__':"]
+
+[tool.ruff]
+exclude = [
+]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["D", "E501"]
+ignore = ["D107"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
