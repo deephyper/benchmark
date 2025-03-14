@@ -12,13 +12,9 @@ from deephyper_benchmark import HPOBenchmark, HPOScorer
 __all__ = ["benchmark"]
 
 
-def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    d = len(x)
-    s1 = np.sum(x**2)
-    s2 = np.sum(np.cos(c * x))
-    term1 = -a * np.exp(-b * np.sqrt(s1 / d))
-    term2 = -np.exp(s2 / d)
-    y = term1 + term2 + a + np.exp(1)
+def easom(x):
+    assert len(x) == 2
+    y = -np.cos(x[0]) * np.cos(x[1]) * np.exp(-((x[0] - np.pi) ** 2 + (x[1] - np.pi) ** 2))
     return y
 
 
@@ -34,22 +30,15 @@ def run_function(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) ->
     x = np.array([config[k] for k in config if "x" in k])
     x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
 
-    return -ackley(x)
+    return -easom(x)
 
 
-class AckleyHPOScorer(HPOScorer):
+class EasomHPOScorer(HPOScorer):
     """A class defining performance evaluators for the Ackley problem."""
 
-    def __init__(
-        self,
-        p_num,
-        p_num_slack,
-        offset=0,
-    ):
-        self.p_num = p_num
-        self.x_min = np.full(self.p_num, fill_value=-offset)
-        self.x_min[p_num - p_num_slack :] = np.nan
-        self.y_min = 0.0
+    def __init__(self, offset=0):
+        self.x_min = np.array([np.pi, np.pi]) - offset
+        self.y_min = -1.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
@@ -74,33 +63,21 @@ class AckleyHPOScorer(HPOScorer):
         return np.cumsum(self.simple_regret(y))
 
 
-class AckleyHPOBenchmark(HPOBenchmark):
+class EasomHPOBenchmark(HPOBenchmark):
     def refresh_settings(self):
-        self.DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
-        self.DEEPHYPER_BENCHMARK_OFFSET = float(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 4.0))
-        self.DEEPHYPER_BENCHMARK_NDIMS_SLACK = int(
-            os.environ.get("DEEPHYPER_BENCHMARK_NDIMS_SLACK", 0)
-        )
+        self.DEEPHYPER_BENCHMARK_OFF = int(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 0))
 
     @property
     def problem(self):
-        # The original range is simetric (-32.768, 32.768) but we make it less simetric to avoid
         # Grid sampling or QMC sampling to directly hit the optimum...
         domain = (
-            -32.768 - self.DEEPHYPER_BENCHMARK_OFFSET,
-            32.768 - self.DEEPHYPER_BENCHMARK_OFFSET,
+            -100.0 - self.DEEPHYPER_BENCHMARK_OFFSET,
+            100.0 - self.DEEPHYPER_BENCHMARK_OFFSET,
         )
         problem = HpProblem()
-        for i in range(self.DEEPHYPER_BENCHMARK_NDIMS - self.DEEPHYPER_BENCHMARK_NDIMS_SLACK):
+        for i in range(2):
             problem.add_hyperparameter(domain, f"x{i}")
 
-        # Add slack/dummy dimensions (useful to test predicors which are sensitive
-        # to unimportant features)
-        for i in range(
-            self.DEEPHYPER_BENCHMARK_NDIMS - self.DEEPHYPER_BENCHMARK_NDIMS_SLACK,
-            self.DEEPHYPER_BENCHMARK_NDIMS,
-        ):
-            problem.add_hyperparameter(domain, f"z{i}")
         return problem
 
     @property
@@ -109,11 +86,7 @@ class AckleyHPOBenchmark(HPOBenchmark):
 
     @property
     def scorer(self):
-        return AckleyHPOScorer(
-            self.DEEPHYPER_BENCHMARK_NDIMS,
-            self.DEEPHYPER_BENCHMARK_NDIMS_SLACK,
-            self.DEEPHYPER_BENCHMARK_OFFSET,
-        )
+        return EasomHPOScorer(self.DEEPHYPER_BENCHMARK_NDIMS_SLACK)
 
 
-benchmark = AckleyHPOBenchmark()
+benchmark = EasomHPOBenchmark()
