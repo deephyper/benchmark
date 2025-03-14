@@ -47,9 +47,9 @@ class AckleyHPOScorer(HPOScorer):
         offset=0,
     ):
         self.p_num = p_num
-        self.x_min = np.full(self.p_num, fill_value=-offset)
-        self.x_min[p_num - p_num_slack :] = np.nan
-        self.y_min = 0.0
+        self.x_max = np.full(self.p_num, fill_value=-offset)
+        self.x_max[p_num - p_num_slack :] = np.nan
+        self.y_max = 0.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
@@ -60,7 +60,7 @@ class AckleyHPOScorer(HPOScorer):
         Returns:
             np.ndarray: An array of regret values.
         """
-        return self.y_min - y
+        return self.y_max - y
 
     def cumul_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the cumulative regret of an array of ordered given solution.
