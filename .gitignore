@@ -150,3 +150,4 @@ context.yaml
 test.py
 plot.py
 *.pkl
+*.code-workspace

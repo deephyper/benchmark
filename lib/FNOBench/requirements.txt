@@ -1,5 +1,0 @@
-neuraloperator
-tensorly
-tensorly-torch
-wandb
-zarr
