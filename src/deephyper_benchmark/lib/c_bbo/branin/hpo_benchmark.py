@@ -43,8 +43,8 @@ class BraninHPOScorer(HPOScorer):
 
     def __init__(self):
         self.p_num = 2
-        self.x_min = np.array([[-np.pi, 12.275], [np.pi, 2.275], [9.42478, 2.475]])
-        self.y_min = 0.397887
+        self.x_max = np.array([[-np.pi, 12.275], [np.pi, 2.275], [9.42478, 2.475]])
+        self.y_max = -0.397887
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
@@ -55,7 +55,7 @@ class BraninHPOScorer(HPOScorer):
         Returns:
             np.ndarray: An array of regret values.
         """
-        return self.y_min - y
+        return self.y_max - y
 
     def cumul_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the cumulative regret of an array of ordered given solution.

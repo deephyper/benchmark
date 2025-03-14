@@ -37,8 +37,8 @@ class EasomHPOScorer(HPOScorer):
     """A class defining performance evaluators for the Ackley problem."""
 
     def __init__(self, offset=0):
-        self.x_min = np.array([np.pi, np.pi]) - offset
-        self.y_min = -1.0
+        self.x_max = np.array([np.pi, np.pi]) - offset
+        self.y_max = 1.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
@@ -49,7 +49,7 @@ class EasomHPOScorer(HPOScorer):
         Returns:
             np.ndarray: An array of regret values.
         """
-        return self.y_min - y
+        return self.y_max - y
 
     def cumul_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the cumulative regret of an array of ordered given solution.
@@ -65,7 +65,7 @@ class EasomHPOScorer(HPOScorer):
 
 class EasomHPOBenchmark(HPOBenchmark):
     def refresh_settings(self):
-        self.DEEPHYPER_BENCHMARK_OFF = int(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 0))
+        self.DEEPHYPER_BENCHMARK_OFFSET = float(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 4.0))
 
     @property
     def problem(self):
@@ -86,7 +86,7 @@ class EasomHPOBenchmark(HPOBenchmark):
 
     @property
     def scorer(self):
-        return EasomHPOScorer(self.DEEPHYPER_BENCHMARK_NDIMS_SLACK)
+        return EasomHPOScorer(self.DEEPHYPER_BENCHMARK_OFFSET)
 
 
 benchmark = EasomHPOBenchmark()
