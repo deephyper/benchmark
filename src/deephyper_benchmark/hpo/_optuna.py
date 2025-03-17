@@ -46,6 +46,30 @@ def optuna_suggest_from_configspace(trial: Trial, config_space: ConfigurationSpa
     return config
 
 
+def optuna_dist_from_hp(hp: Hyperparameter):
+    if isinstance(hp, csh.UniformIntegerHyperparameter):
+        value = optuna.distributions.IntDistribution(low=hp.lower, high=hp.upper, log=hp.log)
+    elif isinstance(hp, csh.UniformFloatHyperparameter):
+        value = optuna.distributions.FloatDistribution(low=hp.lower, high=hp.upper, log=hp.log)
+    elif isinstance(hp, csh.CategoricalHyperparameter):
+        value = optuna.distributions.CategoricalDistribution(hp.choices)
+    elif isinstance(hp, csh.OrdinalHyperparameter):
+        value = optuna.distributions.CategoricalDistribution(hp.sequence)
+    else:
+        raise TypeError(f"Cannot convert hyperparameter of type {type(hp)}")
+
+    return value
+
+
+def optuna_dist_from_configspace(config_space: ConfigurationSpace) -> dict:
+    config = {}
+    for name in config_space:
+        value = optuna_dist_from_hp(config_space[name])
+        config[name] = value
+
+    return config
+
+
 class CheckpointSaverCallback:
     def __init__(self, log_dir=".", states=(TrialState.COMPLETE,)) -> None:
         self._log_dir = log_dir
@@ -66,12 +90,14 @@ def constraints(trial):
 
 
 # Supported samplers
-supported_samplers = ["TPE", "CMAES", "NSGAII", "DUMMY", "BOTORCH", "QMC"]
+supported_samplers = ["TPE", "CMAES", "NSGAII", "DUMMY", "BOTORCH", "QMC", "SMAC"]
 supported_pruners = ["NOP", "SHA", "HB", "MED"]
 
 
 # TODO: CMAES requires: $ pip install cmaes
 # TODO: GP requires: $ pip install torch
+# TODO: SMAC requires $ pip install optunahub smac
+
 
 class OptunaSearch(Search):
     """Wrapper for Optuna to run distributed optimization with MPI.
@@ -129,7 +155,9 @@ class OptunaSearch(Search):
         log_dir: str = ".",
         verbose: int = 0,
         sampler: Union[str, optuna.samplers.BaseSampler] = "TPE",
+        sampler_kwargs: dict = None,
         pruner: Union[str, optuna.pruners.BasePruner] = None,
+        pruner_kwargs: dict = None,
         n_objectives: int = 1,
         study_name: str = None,
         storage: Union[str, optuna.storages.BaseStorage] = None,
@@ -166,6 +194,10 @@ class OptunaSearch(Search):
                 )
 
         # Setup the sampler
+
+        if sampler_kwargs is None:
+            sampler_kwargs = {}
+
         if isinstance(sampler, optuna.samplers.BaseSampler):
             pass
         elif isinstance(sampler, str):
@@ -175,24 +207,32 @@ class OptunaSearch(Search):
                     n_startup_trials=self._n_initial_points,
                     seed=sampler_seed,
                     constraints_func=self._constraints_func,
+                    **sampler_kwargs,
                 )
             elif sampler == "GP":
                 sampler = optuna.samplers.GPSampler(
                     n_startup_trials=self._n_initial_points,
                     seed=sampler_seed,
                     constraints_func=self._constraints_func,
+                    **sampler_kwargs,
                 )
             elif sampler == "CMAES":
                 sampler = optuna.samplers.CmaEsSampler(
-                    n_startup_trials=self._n_initial_points, seed=sampler_seed
+                    n_startup_trials=self._n_initial_points,
+                    seed=sampler_seed,
+                    **sampler_kwargs,
                 )
             elif sampler == "NSGAII":
                 sampler = optuna.samplers.NSGAIISampler(
                     seed=sampler_seed,
                     constraints_func=self._constraints_func,
+                    **sampler_kwargs,
                 )
             elif sampler == "DUMMY":
-                sampler = optuna.samplers.RandomSampler(seed=sampler_seed)
+                sampler = optuna.samplers.RandomSampler(
+                    seed=sampler_seed,
+                    **sampler_kwargs,
+                )
             elif sampler == "BOTORCH":
                 from optuna.integration import BoTorchSampler
 
@@ -200,9 +240,22 @@ class OptunaSearch(Search):
                     n_startup_trials=self._n_initial_points,
                     seed=sampler_seed,
                     constraints_func=self._constraints_func,
+                    **sampler_kwargs,
                 )
             elif sampler == "QMC":
-                sampler = optuna.samplers.QMCSampler(seed=sampler_seed)
+                sampler = optuna.samplers.QMCSampler(
+                    seed=sampler_seed,
+                    **sampler_kwargs,
+                )
+            elif sampler == "SMAC":
+                import optunahub
+
+                module = optunahub.load_module("samplers/smac_sampler")
+                sampler = module.SMACSampler(
+                    search_space=optuna_dist_from_configspace(self._problem.space),
+                    seed=sampler_seed,
+                    **sampler_kwargs,
+                )
 
             else:
                 raise ValueError(
@@ -217,6 +270,9 @@ class OptunaSearch(Search):
         self._n_objectives = n_objectives
 
         # Setup the pruner
+        if pruner_kwargs is None:
+            pruner_kwargs = {}
+
         if self._n_objectives > 1 or pruner is None:
             pruner = None
             if pruner is not None:
