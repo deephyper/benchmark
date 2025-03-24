@@ -1,50 +1,28 @@
-# Setup info-level logging
-import logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(filename)s:%(funcName)s - " + \
-           "%(message)s",
-    force=True,
-)
+"""here."""
 
-# Set DTLZ problem environment variables
-import os
-os.environ["DEEPHYPER_BENCHMARK_NDIMS"] = "5" # 5 vars
-os.environ["DEEPHYPER_BENCHMARK_NOBJS"] = "3" # 2 objs
-os.environ["DEEPHYPER_BENCHMARK_DTLZ_PROB"] = "2" # DTLZ2 problem
-os.environ["DEEPHYPER_BENCHMARK_DTLZ_OFFSET"] = "0.6" # [x_o, .., x_d]*=0.6
-
-# Load DTLZ benchmark suite, nothing to install
-import deephyper_benchmark as dhb
-dhb.load("DTLZ")
+import numpy as np
+from deephyper.hpo import CBO
+from deephyper_benchmark.benchmarks.dtlz import DTLZBenchmark
 
 
-# Necessary IF statement otherwise it will enter in a infinite loop
-# when loading the 'run' function from a subprocess
-if __name__ == "__main__":
-    from deephyper.problem import HpProblem
-    from deephyper.search.hps import CBO
+def main():
+    """Run example."""
+    nobj = 2
+    bench = DTLZBenchmark(nobj=nobj)
 
-    # Run HPO-pipeline with default configuration of hyperparameters
-    from deephyper_benchmark.lib.dtlz import hpo
-    from deephyper.evaluator import RunningJob, Evaluator
-    config = hpo.problem.default_configuration
-    print(config)
-    res = hpo.run(RunningJob(parameters=config))
-    print(f"{res=}")
+    search = CBO(bench.problem, bench.run_function, acq_optimizer="sampling")
+    results = search.search(25)
 
-    # define the evaluator to distribute the computation
-    evaluator = Evaluator.create(
-        hpo.run,
-        method="process",
-        method_kwargs={
-            "num_workers": 2,
-        },
-    )
-
-    # define your search and execute it
-    search = CBO(hpo.problem, evaluator)
-
-    # solve with 100 evals
-    results = search.search(max_evals=100)
     print(results)
+
+    obj = results[[f"objective_{i}" for i in range(nobj)]].values
+    print(np.shape(obj))
+    hvi = bench.scorer.hypervolume(obj)
+    print(hvi)
+
+    hvi_iter = bench.scorer.hypervolume_iter(obj)
+    print(hvi_iter)
+
+
+if __name__ == "__main__":
+    main()
