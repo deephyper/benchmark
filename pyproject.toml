@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "deephyper-benchmark"
 version = "0.0.2"
 dependencies = [
-    # "deephyper",
     "deephyper>=0.9.3",
 ]
 requires-python = ">=3.10"
@@ -29,22 +28,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 
-[project.optional-dependencies]
-
-
-[project.scripts]
-
-
 [project.urls]
 Documentation = "http://deephyper.readthedocs.io"
 Changes = "https://github.com/deephyper/deephyper/releases"
 Forum = "https://github.com/deephyper/deephyper/discussions"
 GitHub = "https://github.com/deephyper/deephyper"
 Issues = "https://github.com/deephyper/deephyper/issues"
-
-[tool.pytest.ini_options]
-norecursedirs = ".git"
-
 
 [tool.coverage.paths]
 source = ["src/", "*/site-packages"]
@@ -56,9 +45,15 @@ source = ["deephyper"]
 [tool.coverage.report]
 exclude_lines = ["if __name__ == '__main__':"]
 
+[tool.pyright]
+pythonVersion = "3.13"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+norecursedirs = ".git"
+
 [tool.ruff]
-exclude = [
-]
 line-length = 100
 
 [tool.ruff.lint]
