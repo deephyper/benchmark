@@ -4,6 +4,7 @@ import functools
 import numpy as np
 from deephyper.hpo import HpProblem
 from deephyper_benchmark import HPOBenchmark, HPOScorer
+from .utils import run_function
 
 
 def michal(x, m=10):

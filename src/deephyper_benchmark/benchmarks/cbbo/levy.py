@@ -4,6 +4,7 @@ import functools
 import numpy as np
 from deephyper.hpo import HpProblem
 from deephyper_benchmark import HPOBenchmark, HPOScorer
+from .utils import run_function
 
 
 def levy(x):
@@ -27,9 +28,9 @@ class LevyScorer(HPOScorer):
 class LevyBenchmark(HPOBenchmark):
     """Levy benchmark."""
 
-    def __init__(self, ndims=5):
+    def __init__(self, nparams=5):
         """Create a Levy benchmark."""
-        self.ndims = ndims
+        self.nparams = nparams
 
     @property
     def problem(self):
@@ -37,7 +38,7 @@ class LevyBenchmark(HPOBenchmark):
         domain = (-10.0, 10.0)
         problem = HpProblem()
 
-        for i in range(self.ndims):
+        for i in range(self.nparams):
             problem.add_hyperparameter(domain, f"x{i}")
 
     @property
@@ -48,4 +49,4 @@ class LevyBenchmark(HPOBenchmark):
     @property
     def scorer(self):
         """Provide the scorer for the hyperparameter benchmark."""
-        return LevyScorer(self.ndims)
+        return LevyScorer(self.nparams)
