@@ -45,7 +45,7 @@ class ShekelHPOScorer(HPOScorer):
     """A class defining performance evaluators for the Shekel problem."""
 
     def __init__(self):
-        self.p_num = 10
+        self.p_num = 4
         self.x_max = np.full(self.p_num, fill_value=4.0)
         self.y_max = 10.5364
 
@@ -77,7 +77,7 @@ class ShekelHPOBenchmark(HPOBenchmark):
     def problem(self):
         domain = (0.0, 10.0)
         problem = HpProblem()
-        for i in range(10):
+        for i in range(4):
             problem.add_hyperparameter(domain, f"x{i}")
         return problem
 

@@ -1,18 +1,19 @@
-"""Module defining the problem and run-function of the benchmark."""
-
-import os
-import time
+"""here."""
 
 import numpy as np
+import time
 
+from deephyper.evaluator import profile
+from deephyper.evaluator import RunningJob
 from deephyper.hpo import HpProblem
-from deephyper.evaluator import profile, RunningJob
 from deephyper_benchmark import HPOBenchmark, HPOScorer
-
-__all__ = ["benchmark"]
 
 
 def ackley(x, a=20, b=0.2, c=2 * np.pi):
+    """Ackley function.
+
+    Description of the function: https://www.sfu.ca/~ssurjano/ackley.html
+    """
     d = len(x)
     s1 = np.sum(x**2)
     s2 = np.sum(np.cos(c * x))
@@ -23,7 +24,7 @@ def ackley(x, a=20, b=0.2, c=2 * np.pi):
 
 
 @profile
-def run_function(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:
+def run_function(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:  # noqa: D103
     config = job.parameters
 
     if sleep:
@@ -37,18 +38,17 @@ def run_function(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) ->
     return -ackley(x)
 
 
-class AckleyHPOScorer(HPOScorer):
+class AckleyScorer(HPOScorer):
     """A class defining performance evaluators for the Ackley problem."""
 
     def __init__(
         self,
-        p_num,
-        p_num_slack,
-        offset=0,
+        nparams,
+        nslack,
     ):
-        self.p_num = p_num
-        self.x_max = np.full(self.p_num, fill_value=0.0)
-        self.x_max[p_num - p_num_slack :] = np.nan
+        self.nparams = nparams
+        self.x_max = np.full(self.nparams, fill_value=0.0)
+        self.x_max[nparams - nslack :] = np.nan
         self.y_max = 0.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
@@ -74,46 +74,48 @@ class AckleyHPOScorer(HPOScorer):
         return np.cumsum(self.simple_regret(y))
 
 
-class AckleyHPOBenchmark(HPOBenchmark):
-    def refresh_settings(self):
-        self.DEEPHYPER_BENCHMARK_NDIMS = int(os.environ.get("DEEPHYPER_BENCHMARK_NDIMS", 5))
-        self.DEEPHYPER_BENCHMARK_OFFSET = float(os.environ.get("DEEPHYPER_BENCHMARK_OFFSET", 4.0))
-        self.DEEPHYPER_BENCHMARK_NDIMS_SLACK = int(
-            os.environ.get("DEEPHYPER_BENCHMARK_NDIMS_SLACK", 0)
+class AckleyBenchmark(HPOBenchmark):
+    """Ackley benchmark.
+
+    Args:
+        nparams (int, optional): the number of parameters in the problem.
+        offset (int, optional): the offset in the space of parameters.
+        nslack (int, optional): the number of additional slack parameters in the problem.
+    """
+
+    def __init__(self, nparams: int = 5, offset: int = -4.0, nslack: int = 0) -> None:
+        self.nparams = nparams
+        assert offset <= 32.768 and offset >= -32.768, (
+            "offset must be in [-32.768, 32.768] to keep the same maximum value."
         )
+        self.offset = offset
+        self.nslack = nslack
 
     @property
-    def problem(self):
+    def problem(self):  # noqa: D102
         # The original range is simetric (-32.768, 32.768) but we make it less simetric to avoid
         # Grid sampling or QMC sampling to directly hit the optimum...
         domain = (
-            -32.768 - self.DEEPHYPER_BENCHMARK_OFFSET,
-            32.768 - self.DEEPHYPER_BENCHMARK_OFFSET,
+            -32.768 + self.offset,
+            32.768 + self.offset,
         )
         problem = HpProblem()
-        for i in range(self.DEEPHYPER_BENCHMARK_NDIMS - self.DEEPHYPER_BENCHMARK_NDIMS_SLACK):
+        for i in range(self.nparams - self.nslack):
             problem.add_hyperparameter(domain, f"x{i}")
 
         # Add slack/dummy dimensions (useful to test predicors which are sensitive
         # to unimportant features)
         for i in range(
-            self.DEEPHYPER_BENCHMARK_NDIMS - self.DEEPHYPER_BENCHMARK_NDIMS_SLACK,
-            self.DEEPHYPER_BENCHMARK_NDIMS,
+            self.nparams - self.nslack,
+            self.nparams,
         ):
             problem.add_hyperparameter(domain, f"z{i}")
         return problem
 
     @property
-    def run_function(self):
+    def run_function(self):  # noqa: D102
         return run_function
 
     @property
-    def scorer(self):
-        return AckleyHPOScorer(
-            self.DEEPHYPER_BENCHMARK_NDIMS,
-            self.DEEPHYPER_BENCHMARK_NDIMS_SLACK,
-            self.DEEPHYPER_BENCHMARK_OFFSET,
-        )
-
-
-benchmark = AckleyHPOBenchmark()
+    def scorer(self):  # noqa: D102
+        return AckleyScorer(self.nparams, self.nslack)
