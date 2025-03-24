@@ -17,10 +17,10 @@ def main():
 
     obj = results[[f"objective_{i}" for i in range(nobj)]].values
     print(np.shape(obj))
-    hvi = bench.scorer.hypervolume(obj)
+    hvi = bench.scorer.hypervolume_score(obj)
     print(hvi)
 
-    hvi_iter = bench.scorer.hypervolume_iter(obj)
+    hvi_iter = bench.scorer.hypervolume(obj)
     print(hvi_iter)
 
 
