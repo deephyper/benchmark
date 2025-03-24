@@ -1,12 +1,13 @@
 """here."""
 
-import numpy as np
-import time
+import functools
 
-from deephyper.evaluator import profile
-from deephyper.evaluator import RunningJob
+import numpy as np
 from deephyper.hpo import HpProblem
+
 from deephyper_benchmark import HPOBenchmark, HPOScorer
+
+from .utils import run_function
 
 
 def ackley(x, a=20, b=0.2, c=2 * np.pi):
@@ -20,22 +21,7 @@ def ackley(x, a=20, b=0.2, c=2 * np.pi):
     term1 = -a * np.exp(-b * np.sqrt(s1 / d))
     term2 = -np.exp(s2 / d)
     y = term1 + term2 + a + np.exp(1)
-    return y
-
-
-@profile
-def run_function(job: RunningJob, sleep=False, sleep_mean=60, sleep_noise=20) -> dict:  # noqa: D103
-    config = job.parameters
-
-    if sleep:
-        t_sleep = np.random.normal(loc=sleep_mean, scale=sleep_noise)
-        t_sleep = max(t_sleep, 0)
-        time.sleep(t_sleep)
-
-    x = np.array([config[k] for k in config if "x" in k])
-    x = np.asarray_chkfinite(x)  # ValueError if any NaN or Inf
-
-    return -ackley(x)
+    return -y
 
 
 class AckleyScorer(HPOScorer):
@@ -50,28 +36,6 @@ class AckleyScorer(HPOScorer):
         self.x_max = np.full(self.nparams, fill_value=0.0)
         self.x_max[nparams - nslack :] = np.nan
         self.y_max = 0.0
-
-    def simple_regret(self, y: np.ndarray) -> np.ndarray:
-        """Compute the regret of a list of given solution.
-
-        Args:
-            y (np.ndarray): An array of solutions.
-
-        Returns:
-            np.ndarray: An array of regret values.
-        """
-        return self.y_max - y
-
-    def cumul_regret(self, y: np.ndarray) -> np.ndarray:
-        """Compute the cumulative regret of an array of ordered given solution.
-
-        Args:
-            y (np.ndarray): An array of solutions.
-
-        Returns:
-            np.ndarray: An array of cumulative regret values.
-        """
-        return np.cumsum(self.simple_regret(y))
 
 
 class AckleyBenchmark(HPOBenchmark):
@@ -114,7 +78,7 @@ class AckleyBenchmark(HPOBenchmark):
 
     @property
     def run_function(self):  # noqa: D102
-        return run_function
+        return functools.partial(run_function, bb_func=ackley)
 
     @property
     def scorer(self):  # noqa: D102
