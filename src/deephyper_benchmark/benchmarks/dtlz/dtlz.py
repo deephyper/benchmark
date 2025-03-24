@@ -9,7 +9,7 @@ from deephyper.evaluator import RunningJob, profile
 from deephyper.hpo import HpProblem
 from deephyper.skopt.moo import hypervolume, pareto_front
 
-from deephyper_benchmark import HPOBenchmark, Scorer
+from deephyper_benchmark import HPOBenchmark, MultiObjHPOScorer
 
 from . import model as dtlz
 
@@ -42,7 +42,7 @@ def run_function(  # noqa: D103
     return ff
 
 
-class DTLZScorer(Scorer):
+class DTLZScorer(MultiObjHPOScorer):
     """A class defining performance evaluators for the DTLZ problems.
 
     Contains the following public methods:
@@ -58,35 +58,14 @@ class DTLZScorer(Scorer):
 
     """
 
+    prob_id: int
+
     def __init__(self, prob_id: int, nobj: int):
         """Read the current DTLZ problem defn from environment vars."""
-        self.prob_id = prob_id
-        self.nobj = nobj
+        super().__init__(prob_id=prob_id, nobj=nobj)
 
-    def hypervolume(self, pts):
-        """Calculate the hypervolume dominated by soln, wrt the Nadir point.
-
-        Args:
-            pts (numpy.ndarray): A 2d array of objective values.
-                Each row is an objective value in the solution set.
-
-        Returns:
-            float: The total hypervolume dominated by the current solution,
-            filtering out points worse than the Nadir point and using the
-            Nadir point as the reference.
-
-        """
-        if np.any(pts < 0):
-            filtered_pts = -pts.copy()
-        else:
-            filtered_pts = pts.copy()
-        nadir = self.nadirPt()
-        for i in range(pts.shape[0]):
-            if np.any(filtered_pts[i, :] > nadir):
-                filtered_pts[i, :] = nadir
-        return hypervolume(filtered_pts, nadir)
-
-    def nadirPt(self):
+    @property
+    def nadir_point(self):
         """Calculate the Nadir point for the given problem definition."""
         if self.prob_id == 1:
             return np.ones(self.nobj) * 0.5
@@ -99,7 +78,7 @@ class DTLZScorer(Scorer):
         else:
             raise ValueError(f"DTLZ{self.prob_id} is not a valid problem")
 
-    def numPts(self, pts):
+    def num_points_dominate_nadir(self, pts):
         """Calculate the number of solutions that dominate the Nadir point.
 
         Args:
@@ -114,9 +93,9 @@ class DTLZScorer(Scorer):
             pareto_pts = pareto_front(-pts)
         else:
             pareto_pts = pareto_front(pts)
-        return sum([all(fi <= self.nadirPt()) for fi in pareto_pts])
+        return sum([all(fi <= self.nadir_point) for fi in pareto_pts])
 
-    def gdPlus(self, pts):
+    def gdplus_score(self, pts):
         """Calculate the p=1 generational distance for a given solution set.
 
         Args:
@@ -194,7 +173,7 @@ class DTLZScorer(Scorer):
             pts_proj.append(gx * hx)
         return np.array([np.abs(np.maximum(fi[-1] - fj, 0)) for fi, fj in zip(pts, pts_proj)])
 
-    def hypervolume_iter(self, y: np.ndarray) -> np.ndarray:
+    def gdplus(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
 
         Args:
@@ -205,22 +184,7 @@ class DTLZScorer(Scorer):
         """
         scores = []
         for i in range(1, y.shape[0] + 1):
-            scores.append(self.hypervolume(y[:i]))
-        scores = np.asarray(scores)
-        return scores
-
-    def gdPlus_iter(self, y: np.ndarray) -> np.ndarray:
-        """Compute the regret of a list of given solution.
-
-        Args:
-            y (np.ndarray): An array of solutions.
-
-        Returns:
-            np.ndarray: An array of regret values.
-        """
-        scores = []
-        for i in range(1, y.shape[0] + 1):
-            scores.append(self.gdPlus(y[:i]))
+            scores.append(self.gdplus_score(y[:i]))
         scores = np.asarray(scores)
         return scores
 
@@ -266,9 +230,8 @@ class DTLZBenchmark(HPOBenchmark):
 
     @property
     def problem(self):  # noqa: D102
-        domain = (0.0, 1.0)
-        # Create problem
         problem = HpProblem()
+        domain = (0.0, 1.0)
         for i in range(self.nparams):
             problem.add_hyperparameter(domain, f"x{i}")
         return problem
