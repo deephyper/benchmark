@@ -63,7 +63,7 @@ class Hartmann6DBenchmark(HPOBenchmark):
     def problem(self):  # noqa: D102
         domain = (0.0, 1.0)
         problem = HpProblem()
-        for i in range(self.nparams - self.nslack):
+        for i in range(self.nparams):
             problem.add_hyperparameter(domain, f"x{i}")
         return problem
 
