@@ -10,22 +10,17 @@ from deephyper_benchmark import HPOBenchmark, HPOScorer
 from .utils import run_function
 
 
-def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    """Ackley function.
-
-    Description of the function: https://www.sfu.ca/~ssurjano/ackley.html
-    """
-    d = len(x)
-    s1 = np.sum(x**2)
-    s2 = np.sum(np.cos(c * x))
-    term1 = -a * np.exp(-b * np.sqrt(s1 / d))
-    term2 = -np.exp(s2 / d)
-    y = term1 + term2 + a + np.exp(1)
+def griewank(x, fr=4000):  # noqa: D103
+    n = len(x)
+    j = np.arange(1.0, n + 1)
+    s = np.sum(x**2)
+    p = np.prod(np.cos(x / np.sqrt(j)))
+    y = s / fr - p + 1
     return -y
 
 
-class AckleyScorer(HPOScorer):
-    """A class defining performance evaluators for the Ackley problem."""
+class GriewankScorer(HPOScorer):
+    """A class defining performance evaluators for the Griewank problem."""
 
     def __init__(
         self,
@@ -41,8 +36,8 @@ class AckleyScorer(HPOScorer):
         self.y_max = 0.0
 
 
-class AckleyBenchmark(HPOBenchmark):
-    """Ackley benchmark.
+class GriewankBenchmark(HPOBenchmark):
+    """Griewank benchmark.
 
     Args:
         nparams (int, optional): the number of parameters in the problem.
@@ -52,23 +47,19 @@ class AckleyBenchmark(HPOBenchmark):
 
     def __init__(self, nparams: int = 5, offset: int = -4.0, nslack: int = 0) -> None:
         self.nparams = nparams
-        self.nslack = nslack
-        assert offset <= 32.768 and offset >= -32.768, (
-            "offset must be in [-32.768, 32.768] to keep the same maximum value."
+        assert offset <= 600.0 and offset >= -600.0, (
+            "offset must be in [-600.0, 600.0] to keep the same maximum value."
         )
         self.offset = offset
+        self.nslack = nslack
 
     @property
     def problem(self):  # noqa: D102
-        # The original range is simetric (-32.768, 32.768) but we make it less simetric to avoid
-        # Grid sampling or QMC sampling to directly hit the optimum...
-        domain = (-32.768 + self.offset, 32.768 + self.offset)
+        domain = (-600.0 + self.offset, 600.0 + self.offset)
         problem = HpProblem()
         for i in range(self.nparams - self.nslack):
             problem.add_hyperparameter(domain, f"x{i}")
 
-        # Add slack/dummy dimensions (useful to test predicors which are sensitive
-        # to unimportant features)
         for i in range(
             self.nparams - self.nslack,
             self.nparams,
@@ -78,8 +69,8 @@ class AckleyBenchmark(HPOBenchmark):
 
     @property
     def run_function(self):  # noqa: D102
-        return functools.partial(run_function, bb_func=ackley)
+        return functools.partial(run_function, bb_func=griewank)
 
     @property
     def scorer(self):  # noqa: D102
-        return AckleyScorer(self.nparams, self.nslack, self.offset)
+        return GriewankScorer(self.nparams, self.nslack, self.offset)
