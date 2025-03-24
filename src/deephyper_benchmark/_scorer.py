@@ -2,15 +2,16 @@ import abc
 
 import numpy as np
 from deephyper.skopt.moo import hypervolume
-from pydantic import BaseModel
 
 
-class Scorer(BaseModel, abc.ABC):
+class Scorer(abc.ABC):
     pass
 
 
 class HPOScorer(Scorer):
-    y_max: float
+    def __init__(self, nparams: int, y_max: float):
+        self.nparams = nparams
+        self.y_max = y_max
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
@@ -36,7 +37,8 @@ class HPOScorer(Scorer):
 
 
 class MultiObjHPOScorer(Scorer):
-    nobj: int
+    def __init__(self, nobj: int):
+        self.nobj = nobj
 
     def hypervolume_score(self, pts: np.ndarray):
         """Calculate the hypervolume dominated by soln, wrt the Nadir point.

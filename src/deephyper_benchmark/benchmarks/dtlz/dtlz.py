@@ -7,7 +7,7 @@ from typing import Optional
 import numpy as np
 from deephyper.evaluator import RunningJob, profile
 from deephyper.hpo import HpProblem
-from deephyper.skopt.moo import hypervolume, pareto_front
+from deephyper.skopt.moo import pareto_front
 
 from deephyper_benchmark import HPOBenchmark, MultiObjHPOScorer
 
@@ -58,11 +58,10 @@ class DTLZScorer(MultiObjHPOScorer):
 
     """
 
-    prob_id: int
-
     def __init__(self, prob_id: int, nobj: int):
         """Read the current DTLZ problem defn from environment vars."""
-        super().__init__(prob_id=prob_id, nobj=nobj)
+        super().__init__(nobj)
+        self.prob_id = prob_id
 
     @property
     def nadir_point(self):
