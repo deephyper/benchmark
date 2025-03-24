@@ -10,8 +10,8 @@ class Scorer(BaseModel, abc.ABC):
 
 
 class HPOScorer(Scorer):
-
     y_max: float
+
     def simple_regret(self, y: np.ndarray) -> np.ndarray:
         """Compute the regret of a list of given solution.
 
