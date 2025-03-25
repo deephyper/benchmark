@@ -37,7 +37,7 @@ class EasomHPOScorer(HPOScorer):
     """A class defining performance evaluators for the Ackley problem."""
 
     def __init__(self, offset=0):
-        self.x_max = np.array([np.pi, np.pi]) - offset
+        self.x_max = np.array([np.pi, np.pi])
         self.y_max = 1.0
 
     def simple_regret(self, y: np.ndarray) -> np.ndarray:

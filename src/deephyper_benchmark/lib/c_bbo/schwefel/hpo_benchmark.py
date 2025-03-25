@@ -38,8 +38,6 @@ class SchwefelHPOScorer(HPOScorer):
     def __init__(
         self,
         p_num,
-        p_num_slack,
-        offset=0,
     ):
         self.p_num = p_num
         self.x_max = np.full(self.p_num, fill_value=420.9687)

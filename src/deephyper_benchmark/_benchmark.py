@@ -2,15 +2,12 @@ import abc
 
 
 class Benchmark(abc.ABC):
-    def __init__(self):
-        super().__init__()
-        self.refresh_settings()
-
-    def refresh_settings(self):
-        """Refresh benchmark settings."""
+    """Base class for benchmarks."""
 
 
 class HPOBenchmark(Benchmark):
+    """Base class for Hyperparameter optimization benchmarks."""
+
     @property
     @abc.abstractmethod
     def problem(self):

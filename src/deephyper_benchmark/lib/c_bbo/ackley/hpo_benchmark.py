@@ -47,7 +47,7 @@ class AckleyHPOScorer(HPOScorer):
         offset=0,
     ):
         self.p_num = p_num
-        self.x_max = np.full(self.p_num, fill_value=-offset)
+        self.x_max = np.full(self.p_num, fill_value=0.0)
         self.x_max[p_num - p_num_slack :] = np.nan
         self.y_max = 0.0
 

@@ -1,0 +1,31 @@
+cell_features: ['expression']
+drug_features: ['descriptors']
+dense: [1000, 1000, 1000]
+dense_feature_layers: [1000, 1000, 1000]
+activation: 'relu'
+loss: 'mse'
+optimizer: 'adam'
+scaling: 'std'
+dropout: 0
+epochs: 1
+batch_size: 32
+valid_split: 0.2
+test_split: 0.2
+max_val_loss: 1.0
+learning_rate: 0.001
+base_lr: 0.001
+residual: False
+reduce_lr: False
+reduce_lr_factor: 0.5
+reduce_lr_patience: 5
+warmup_lr: False
+early_stopping: False
+early_stopping_patience: 5
+batch_normalization: False
+feature_subsample: 0
+rng_seed: 2017
+save_path: 'save/combo'
+gen: False
+use_combo_score: False
+verbose : True
+timeout: 1800
