@@ -1,4 +1,7 @@
-"""here."""
+"""Module for Ackley benchmark.
+
+Description of the function: https://www.sfu.ca/~ssurjano/ackley.html
+"""
 
 import functools
 
@@ -11,10 +14,7 @@ from .utils import run_function
 
 
 def ackley(x, a=20, b=0.2, c=2 * np.pi):
-    """Ackley function.
-
-    Description of the function: https://www.sfu.ca/~ssurjano/ackley.html
-    """
+    """Ackley function."""
     d = len(x)
     s1 = np.sum(x**2)
     s2 = np.sum(np.cos(c * x))
