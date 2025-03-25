@@ -11,6 +11,10 @@ from .utils import run_function
 
 
 def hartmann6D(x):  # noqa: D103
+    """Hartmann6D function benchmark.
+
+    Description of the function: https://www.sfu.ca/~ssurjano/hart6.html
+    """
     alpha = np.array([1.0, 1.2, 3.0, 3.2])
     A = np.array(
         [
@@ -40,7 +44,7 @@ class Hartmann6DScorer(HPOScorer):
 
     def __init__(self):
         self.nparams = 6
-        self.x_max = np.array(
+        self.x_max = np.asarray(
             [
                 0.20169,
                 0.150011,

@@ -11,6 +11,10 @@ from .utils import run_function
 
 
 def griewank(x, fr=4000):  # noqa: D103
+    """Griewank function benchmark.
+
+    Description of the function: https://www.sfu.ca/~ssurjano/griewank.html
+    """
     n = len(x)
     j = np.arange(1.0, n + 1)
     s = np.sum(x**2)
@@ -31,8 +35,7 @@ class GriewankScorer(HPOScorer):
         self.nparams = nparams
         self.nslack = nslack
         self.offset = offset
-        self.x_max = np.full(self.nparams, fill_value=offset)
-        self.x_max[nparams - nslack :] = np.nan
+        self.x_max = np.asarray([offset for _ in range(self.nparams)])
         self.y_max = 0.0
 
 

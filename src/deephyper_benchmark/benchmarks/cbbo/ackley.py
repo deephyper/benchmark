@@ -4,7 +4,6 @@ import functools
 
 import numpy as np
 from deephyper.hpo import HpProblem
-from typing import List
 
 from deephyper_benchmark import HPOBenchmark, HPOScorer
 
@@ -37,7 +36,7 @@ class AckleyScorer(HPOScorer):
         self.nparams = nparams
         self.nslack = nslack
         self.offset = offset
-        self.x_max = [offset for _ in range(self.nparams)]
+        self.x_max = np.asarray([offset for _ in range(self.nparams)])
         self.y_max = 0.0
 
 

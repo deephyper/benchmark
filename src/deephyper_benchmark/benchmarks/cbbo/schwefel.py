@@ -1,4 +1,7 @@
-"""Module for Schwefel benchmark."""
+"""Module for Schwefel benchmark.
+
+Description of the function: https://www.sfu.ca/~ssurjano/schwef.html
+"""
 
 import functools
 import numpy as np
@@ -11,7 +14,7 @@ def schwefel(x):
     """Schwefel benchmark function."""
     n = len(x)
     y = 418.9829 * n - sum(x * np.sin(np.sqrt(np.abs(x))))
-    return y
+    return -y
 
 
 class SchwefelScorer(HPOScorer):
@@ -19,12 +22,14 @@ class SchwefelScorer(HPOScorer):
 
     def __init__(self, nparams=5):
         self.nparams = nparams
+        self.x_max = np.full(self.nparams, fill_value=420.9687)
+        self.y_max = 0.0
 
 
 class SchwefelBenchmark(HPOBenchmark):
     """Schwefel benchmark."""
 
-    def __init__(self, nparams=5):
+    def __init__(self, nparams: int = 5):
         """Create a Schwefel benchmark."""
         self.nparams = nparams
 
@@ -33,9 +38,9 @@ class SchwefelBenchmark(HPOBenchmark):
         """Define the hyperparameter problem."""
         domain = (-500.0, 500.0)
         problem = HpProblem()
-
         for i in range(self.nparams):
             problem.add_hyperparameter(domain, f"x{i}")
+        return problem
 
     @property
     def run_function(self):
