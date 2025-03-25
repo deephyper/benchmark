@@ -29,14 +29,20 @@ def create_parser():
 
 
 class Runner:
-    def __init__(self, config_path):
+    """Runner class to run cbbo benchmarks.
+
+    Args:
+        config_path (str): path to configuration TOML file.
+    """
+
+    def __init__(self, config_path: str):
         with open(config_path, "rb") as f:
             self.config = tomllib.load(f)
         self.root_path = os.getcwd()
         self.runs_path = os.path.join(self.root_path, "runs")
         pathlib.Path(self.runs_path).mkdir(parents=False, exist_ok=True)
 
-    def create_evaluator(self, run_function, tqdm_label):
+    def create_evaluator(self, run_function, tqdm_label):  # noqa: D102
         config = self.config["evaluator"]
 
         evaluator = Evaluator.create(
@@ -49,8 +55,9 @@ class Runner:
         )
         return evaluator
 
-    def run_search_replica(self, bench, max_evals, label, config):
+    def run_search_replica(self, bench, max_evals, label, config):  # noqa: D102
         print(f"Starting replica: {label}'")
+        search_kwargs = config.get("kwargs", {})
 
         Search = getattr(
             importlib.import_module(config["package"]),
@@ -62,7 +69,7 @@ class Runner:
         log_dir = os.path.join(self.runs_path, label)
         pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
 
-        search = Search(bench.problem, evaluator, log_dir=log_dir)
+        search = Search(bench.problem, evaluator, log_dir=log_dir, **search_kwargs)
         search.search(max_evals)
 
     def run_search(self, bench, label, config):
@@ -93,16 +100,6 @@ class Runner:
 
         for benchmark_label, benchmark_config in self.config["benchmark"].items():
             self.run_benchmark(benchmark_label, benchmark_config)
-
-    # bench = AckleyBenchmark()
-
-    # search = CBO(bench.problem, bench.run_function)
-    # results = search.search(25)
-
-    # print(results)
-
-    # cumul_regret = bench.scorer.cumul_regret(results.objective)
-    # print(cumul_regret)
 
 
 if __name__ == "__main__":
