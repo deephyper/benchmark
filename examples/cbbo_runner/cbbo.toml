@@ -1,0 +1,26 @@
+title = "CBBO Benchmark"
+
+[search]
+max_evals = 100
+num_replications = 2
+
+# [search.method.cbo]
+# package = "deephyper.hpo"
+# name = "CBO"
+
+[search.method.tpe]
+package = "deephyper_benchmark.hpo.optuna"
+name = "OptunaSearch"
+
+
+[search.method.random]
+package = "deephyper.hpo"
+name = "RandomSearch"
+
+[evaluator]
+method = "thread"
+num_workers = 1
+
+[benchmark.ackley]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "AckleyBenchmark"
