@@ -1,13 +1,13 @@
 """Module to run CBBO benchmarks."""
 
-import os
 import argparse
 import importlib
+import logging
+import os
 import pathlib
 import uuid
 
 import tomllib
-
 from deephyper.evaluator import Evaluator
 from deephyper.evaluator.callback import TqdmCallback
 
@@ -56,7 +56,6 @@ class Runner:
         return evaluator
 
     def run_search_replica(self, bench, max_evals, label, config):  # noqa: D102
-        print(f"Starting replica: {label}'")
         search_kwargs = config.get("kwargs", {})
 
         Search = getattr(
@@ -69,6 +68,13 @@ class Runner:
         log_dir = os.path.join(self.runs_path, label)
         pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
 
+        logging.basicConfig(
+            filename=os.path.join(log_dir, "deephyper.log"),
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(filename)s:%(funcName)s - %(message)s",
+            force=True,
+        )
+
         search = Search(bench.problem, evaluator, log_dir=log_dir, **search_kwargs)
         search.search(max_evals)
 
@@ -79,6 +85,7 @@ class Runner:
 
         for i in range(num_replications):
             replica_id = str(uuid.uuid4())
+            print(f"Starting replica {i + 1}/{num_replications}: {label}")
             self.run_search_replica(bench, max_evals, f"{label}/{replica_id}", config)
 
     def run_benchmark(self, label, config):
