@@ -2,35 +2,125 @@ title = "CBBO Benchmark"
 
 [search]
 max_evals = 500
-num_replications = 10
+num_replications = 2
+
+[search.method.random]
+package = "deephyper.hpo"
+name = "RandomSearch"
+
+[search.method.cbo_093]
+package = "deephyper.hpo"
+name = "CBO"
+kwargs.acq_optimizer = "ga"
 
 [search.method.cbo]
 package = "deephyper.hpo"
 name = "CBO"
 kwargs.acq_optimizer = "ga"
 
-[search.method.random]
-package = "deephyper.hpo"
-name = "RandomSearch"
+# [search.method.cbo_no_outlier]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
 
-[search.method.tpe]
-package = "deephyper_benchmark.hpo.optuna"
-name = "OptunaSearch"
-kwargs.sampler = "TPE"
+# [search.method.cbo_mixedga]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "mixedga"
 
-[search.method.cmaes]
-package = "deephyper_benchmark.hpo.optuna"
-name = "OptunaSearch"
-kwargs.sampler = "CMAES"
+# [search.method.cbo_ga_init_random]
+# # test with random initialization for ga
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
+
+# [search.method.cbo_lhs]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
+# kwargs.initial_point_generator = "lhs"
+
+# [search.method.cbo_n_estimators]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
+# kwargs.surrogate_model_kwargs = { n_estimators = 50, min_samples_split = 2, min_impurity_decrease = 0.005, scheduler = { patience = 10, params = { min_impurity_decrease = { factor = 0.2 } } } }
+
+# [search.method.cbo_n_initial_points]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
+# kwargs.n_initial_points = 21
+
+# [search.method.cbo_kappa_5]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_func_kwargs = { kappa = 5.0 }
+# kwargs.acq_optimizer = "ga"
+
+# [search.method.cbo_kappa_period_25]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_func_kwargs = { kappa = 1.96, scheduler = { type = "periodic-exp-decay", patience = 25, kappa_final = 0.01 } }
+# kwargs.acq_optimizer = "ga"
+
+# [search.method.cbo_min_samples_split]
+# package = "deephyper.hpo"
+# name = "CBO"
+# kwargs.acq_optimizer = "ga"
+# kwargs.surrogate_model_kwargs = { n_estimators = 10, min_samples_split = 8, min_impurity_decrease = 0.0 }
+
+# [search.method.tpe]
+# package = "deephyper_benchmark.hpo.optuna"
+# name = "OptunaSearch"
+# kwargs.sampler = "TPE"
+
+# [search.method.cmaes]
+# package = "deephyper_benchmark.hpo.optuna"
+# name = "OptunaSearch"
+# kwargs.sampler = "CMAES"
+
+# [search.method.smac]
+# package = "deephyper_benchmark.hpo.optuna"
+# name = "OptunaSearch"
+# kwargs.sampler = "SMAC"
 
 [evaluator]
 method = "thread"
 num_workers = 1
 
-# [benchmark.ackley]
-# package = "deephyper_benchmark.benchmarks.cbbo"
-# name = "AckleyBenchmark"
+[benchmark.ackley]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "AckleyBenchmark"
 
 [benchmark.branin]
 package = "deephyper_benchmark.benchmarks.cbbo"
 name = "BraninBenchmark"
+
+[benchmark.griewank]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "GriewankBenchmark"
+
+[benchmark.hartmann6d]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "Hartmann6DBenchmark"
+
+[benchmark.levy]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "LevyBenchmark"
+
+[benchmark.michal]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "MichalBenchmark"
+
+[benchmark.rosen]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "RosenBenchmark"
+
+[benchmark.schwefel]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "SchwefelBenchmark"
+
+[benchmark.shekel]
+package = "deephyper_benchmark.benchmarks.cbbo"
+name = "ShekelBenchmark"
